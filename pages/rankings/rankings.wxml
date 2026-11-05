@@ -1,0 +1,118 @@
+<nav-bar title="使用率 TOP 50" back="{{true}}" />
+
+<view class="page rankings-page">
+  <view class="page-pad">
+    <view class="rank-hero">
+      <view class="rank-hero-glow"></view>
+      <view class="rank-hero-head">
+        <view>
+          <text class="rank-kicker">META RANKING</text>
+          <text class="rank-title">使用率 TOP 50</text>
+        </view>
+        <view class="rank-crown">TOP</view>
+      </view>
+      <text class="rank-sub">《宝可梦冠军》当前环境 · 单打 / 双打</text>
+
+      <view class="format-switch">
+        <view
+          wx:for="{{formats}}"
+          wx:key="key"
+          class="format-btn {{format === item.key ? 'active' : ''}}"
+          data-format="{{item.key}}"
+          bindtap="switchFormat"
+        >
+          <text>{{item.label}}</text>
+          <text wx:if="{{format === item.key}}" class="format-active-dot"></text>
+        </view>
+      </view>
+
+      <view class="rank-meta">
+        <text class="rank-meta-source">{{metaLine}}</text>
+        <text class="rank-meta-dot">·</text>
+        <text>{{sampleLine}}</text>
+      </view>
+    </view>
+
+    <view class="podium">
+      <view
+        wx:for="{{podium}}"
+        wx:key="key"
+        class="podium-card {{item.podiumClass}}"
+        data-key="{{item.key}}"
+        bindtap="openMon"
+        hover-class="press-hover"
+      >
+        <view class="podium-medal">{{item.medal}}</view>
+        <image class="podium-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
+        <text class="podium-name">{{item.name}}</text>
+        <view class="podium-types">
+          <view
+            wx:for="{{item.typesInfo}}"
+            wx:for-item="t"
+            wx:key="key"
+            class="podium-type"
+            style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
+          >{{t.name}}</view>
+        </view>
+        <text class="podium-pct">{{item.usageText}}</text>
+        <text class="podium-sub">使用率</text>
+      </view>
+    </view>
+
+    <view class="list-head">
+      <view class="list-head-left">
+        <text class="section-title">TOP {{count}}</text>
+        <text class="list-head-note">{{formatLabel}} · 使用率排名</text>
+      </view>
+      <text class="list-head-top">榜首 {{topUsageText}}</text>
+    </view>
+
+    <view class="rank-list">
+      <view
+        wx:for="{{rest}}"
+        wx:key="key"
+        class="rank-row"
+        data-key="{{item.key}}"
+        bindtap="openMon"
+        hover-class="press-hover"
+      >
+        <text class="rank-no">{{item.rank}}</text>
+        <image class="rank-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
+        <view class="rank-info">
+          <view class="rank-name-line">
+            <text class="rank-name">{{item.name}}</text>
+            <text wx:if="{{item.formLabel}}" class="rank-form">{{item.formLabel}}</text>
+          </view>
+          <view class="rank-types">
+            <view
+              wx:for="{{item.typesInfo}}"
+              wx:for-item="t"
+              wx:key="key"
+              class="rank-type"
+              style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
+            >{{t.name}}</view>
+            <text wx:if="{{item.teamText}}" class="rank-team">{{item.teamText}}</text>
+          </view>
+        </view>
+        <view class="rank-right">
+          <text class="rank-pct">{{item.usageText}}</text>
+          <view class="rank-bar">
+            <view class="rank-bar-fill" style="width:{{item.bar}};"></view>
+          </view>
+          <text class="rank-sub">{{item.subText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="rank-note">
+      <text>使用率按队伍携带率统计；点击任意宝可梦查看特性、招式、性格、道具与努力值的使用率。</text>
+      <text class="rank-note-source">数据：<text class="rank-note-strong">{{sourceLine}}</text></text>
+    </view>
+
+    <view class="rank-foot">
+      <text>DATA UPDATE {{meta.updated}}</text>
+      <text class="rank-foot-dot">·</text>
+      <text>非官方粉丝作品</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,91 @@
+<nav-bar title="队伍编辑" back="{{true}}" />
+
+<view class="page team-page">
+  <view class="page-pad">
+    <view class="team-hero">
+      <view class="team-hero-top">
+        <view class="team-hero-copy">
+          <text class="team-kicker">TEAM CONFIG</text>
+          <input
+            class="team-name-input"
+            value="{{teamName}}"
+            maxlength="20"
+            placeholder="队伍名称"
+            placeholder-class="team-name-placeholder"
+            bindinput="onNameInput"
+            bindblur="onNameBlur"
+          />
+          <text class="team-count">{{memberCount}} / 6 只有宝可梦</text>
+        </view>
+        <view class="team-hero-badge">{{memberCount}}/6</view>
+      </view>
+    </view>
+
+    <view class="slot-list">
+      <block wx:for="{{slots}}" wx:key="index">
+        <view wx:if="{{item.empty}}" class="slot-empty press" data-slot="{{item.index}}" bindtap="addMember" hover-class="press-hover">
+          <view class="slot-plus">+</view>
+          <view class="slot-empty-copy">
+            <text class="slot-empty-title">添加宝可梦</text>
+            <text class="slot-empty-sub">第 {{item.index + 1}} 个位置</text>
+          </view>
+          <text class="slot-arrow">→</text>
+        </view>
+
+        <view wx:else class="member-card">
+          <view class="member-head">
+            <view class="member-identity" data-slot="{{item.index}}" bindtap="editMember" hover-class="press-hover">
+              <image class="member-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
+              <view class="member-copy">
+                <text class="member-name">{{item.name}}</text>
+                <view class="member-types">
+                  <view
+                    wx:for="{{item.typesInfo}}"
+                    wx:for-item="t"
+                    wx:key="key"
+                    class="member-type"
+                    style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
+                  >{{t.name}}</view>
+                </view>
+              </view>
+            </view>
+            <view class="member-actions">
+              <view class="member-edit" data-slot="{{item.index}}" bindtap="editMember">编辑</view>
+              <view class="member-remove" data-slot="{{item.index}}" catchtap="removeMember">移除</view>
+            </view>
+          </view>
+
+          <view class="member-config">
+            <view class="config-pill"><text class="config-label">特性</text><text>{{item.ability}}</text></view>
+            <view class="config-pill"><text class="config-label">道具</text><text>{{item.item}}</text></view>
+            <view class="config-pill"><text class="config-label">性格</text><text>{{item.nature}}</text></view>
+          </view>
+
+          <view class="member-moves">
+            <text wx:for="{{item.moveNames}}" wx:key="*this" class="move-chip">{{item}}</text>
+            <text wx:if="{{!item.moveNames.length}}" class="move-chip empty-chip">未配置招式</text>
+          </view>
+
+          <view class="member-stats">
+            <view wx:for="{{item.stats}}" wx:for-item="s" wx:key="key" class="stat-cell">
+              <text class="stat-label">{{s.label}}</text>
+              <text class="stat-value">{{s.value}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view wx:if="{{memberCount >= 2}}" class="calc-btn press" bindtap="goCalc" hover-class="press-hover">
+      <view>
+        <text class="calc-kicker">DAMAGE CALC</text>
+        <text class="calc-title">进入伤害计算</text>
+      </view>
+      <text class="calc-arrow">→</text>
+    </view>
+
+    <view class="team-note">
+      <text>能力值按 Lv.50 / IV 31 / 0–32 SP / 性格修正实时计算。修改会自动保存到本机。</text>
+    </view>
+  </view>
+</view>

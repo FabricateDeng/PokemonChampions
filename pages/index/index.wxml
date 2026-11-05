@@ -1,0 +1,243 @@
+<nav-bar title="冠军图鉴" brand="{{true}}" />
+
+<view class="page">
+  <view class="page-pad">
+    <view class="hero">
+      <view class="hero-mesh"></view>
+      <view class="hero-orbit orbit-a"></view>
+      <view class="hero-orbit orbit-b"></view>
+
+      <view class="hero-head">
+        <view class="hero-copy">
+          <text class="hero-kicker">POKÉMON CHAMPIONS</text>
+          <text class="hero-title">可用宝可梦图鉴</text>
+          <text class="hero-sub">种族值 · 特性 · 招式，一页查清</text>
+        </view>
+        <view class="hero-ball">
+          <view class="hero-ball-line"></view>
+          <view class="hero-ball-core"></view>
+        </view>
+      </view>
+
+      <view class="hero-stats">
+        <view class="hero-stat">
+          <text class="hero-num">{{meta.count}}</text>
+          <text class="hero-label">可用宝可梦</text>
+        </view>
+        <view class="hero-stat-sep"></view>
+        <view class="hero-stat">
+          <text class="hero-num">{{meta.megaCount}}</text>
+          <text class="hero-label">超级进化</text>
+        </view>
+        <view class="hero-stat-sep"></view>
+        <view class="hero-stat">
+          <text class="hero-num">{{meta.moveCount}}</text>
+          <text class="hero-label">可用招式</text>
+        </view>
+      </view>
+
+      <view class="hero-actions">
+        <view class="hero-action primary press" bindtap="openRankings" hover-class="press-hover">
+          <text>使用率榜</text>
+          <text class="hero-arrow">→</text>
+        </view>
+        <view class="hero-action compact press" bindtap="openMoves" hover-class="press-hover">
+          <text>招式库</text>
+        </view>
+        <view class="hero-action compact press" bindtap="openAbout" hover-class="press-hover">
+          <text>说明</text>
+        </view>
+      </view>
+
+      <view wx:if="{{singleTop && doubleTop}}" class="meta-teaser press" bindtap="openRankings" hover-class="press-hover">
+        <view class="meta-teaser-head">
+          <text class="meta-kicker">META SNAPSHOT</text>
+          <text class="meta-link">查看完整 TOP 50 →</text>
+        </view>
+        <view class="meta-teaser-body">
+          <view class="meta-side">
+            <image class="meta-sprite" src="{{singleTop.sprite}}" mode="aspectFit" />
+            <view class="meta-copy">
+              <text class="meta-tag">单打 #1</text>
+              <text class="meta-name">{{singleTop.name}}</text>
+            </view>
+            <text class="meta-pct">{{singleTop.usage}}%</text>
+          </view>
+          <view class="meta-sep"></view>
+          <view class="meta-side">
+            <image class="meta-sprite" src="{{doubleTop.sprite}}" mode="aspectFit" />
+            <view class="meta-copy">
+              <text class="meta-tag">双打 #1</text>
+              <text class="meta-name">{{doubleTop.name}}</text>
+            </view>
+            <text class="meta-pct">{{doubleTop.usage}}%</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="quick-tools page-pad">
+    <view class="quick-tool press" bindtap="openTeams" hover-class="press-hover">
+      <view class="quick-tool-top">
+        <text class="quick-kicker">TEAM BUILDER</text>
+        <text class="quick-arrow">→</text>
+      </view>
+      <text class="quick-title">队伍编辑</text>
+      <text class="quick-sub">6 只 · 招式 · 能力值</text>
+    </view>
+    <view class="quick-tool press" bindtap="openCalc" hover-class="press-hover">
+      <view class="quick-tool-top">
+        <text class="quick-kicker">DAMAGE CALC</text>
+        <text class="quick-arrow">→</text>
+      </view>
+      <text class="quick-title">伤害计算</text>
+      <text class="quick-sub">队伍配置 · 实战推演</text>
+    </view>
+  </view>
+
+  <view class="tools page-pad">
+    <view class="search-box">
+      <view class="search-icon"></view>
+      <input
+        class="search-input"
+        value="{{query}}"
+        placeholder="搜索名称 / 属性 / 特性 / 招式"
+        placeholder-class="search-placeholder"
+        confirm-type="search"
+        bindinput="onSearchInput"
+      />
+      <view wx:if="{{query}}" class="search-clear" bindtap="clearSearch" hover-class="search-clear-hover">×</view>
+    </view>
+    <text class="search-tip">支持中文名、英文名、图鉴编号，以及特性 / 招式关键词</text>
+
+    <scroll-view class="type-rail" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="type-rail-inner">
+        <view
+          wx:for="{{typeList}}"
+          wx:key="key"
+          class="type-chip {{typeKey === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onTypeTap"
+          style="background:{{typeKey === item.key ? item.color : 'rgba(255,255,255,0.045)'}};border-color:{{typeKey === item.key ? item.color : 'rgba(255,255,255,0.09)'}};color:{{typeKey === item.key ? item.textOn : '#c9d2e0'}};"
+        >
+          <view wx:if="{{item.key !== 'all'}}" class="type-dot" style="background:{{typeKey === item.key ? item.textOn : item.color}};"></view>
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <scroll-view class="filter-rail" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="filter-rail-inner">
+        <picker mode="selector" range="{{genOptions}}" value="{{genIndex}}" bindchange="onGenChange">
+          <view class="filter-chip {{genIndex > 0 ? 'on' : ''}}">
+            <text>{{genLabel}}</text>
+            <view class="chevron"></view>
+          </view>
+        </picker>
+
+        <picker mode="selector" range="{{formOptions}}" value="{{formIndex}}" bindchange="onFormChange">
+          <view class="filter-chip {{formIndex > 0 ? 'on' : ''}}">
+            <text>{{formLabel}}</text>
+            <view class="chevron"></view>
+          </view>
+        </picker>
+
+        <picker mode="selector" range="{{sortOptions}}" value="{{sortIndex}}" bindchange="onSortChange">
+          <view class="filter-chip {{sortIndex > 0 ? 'on' : ''}}">
+            <text>排序 · {{sortLabel}}</text>
+            <view class="chevron"></view>
+          </view>
+        </picker>
+
+        <view class="filter-chip fav-chip {{onlyFav ? 'on' : ''}}" bindtap="toggleOnlyFav">
+          <text class="fav-glyph">{{onlyFav ? '★' : '☆'}}</text>
+          <text>收藏 {{favCount}}</text>
+        </view>
+
+        <view wx:if="{{hasFilters}}" class="filter-chip clear-chip" bindtap="clearFilters">
+          <text>清除筛选</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="result-bar">
+      <view class="result-left">
+        <text class="result-count">{{resultCount}}</text>
+        <text class="result-unit">只宝可梦</text>
+      </view>
+      <text wx:if="{{query}}" class="result-hint">“{{query}}” 的搜索结果</text>
+      <text wx:else class="result-hint">按{{sortLabel}}排序</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!empty}}" class="grid page-pad">
+    <view
+      wx:for="{{visibleList}}"
+      wx:key="key"
+      class="mon-card press"
+      data-key="{{item.key}}"
+      bindtap="openDetail"
+      hover-class="press-hover"
+    >
+      <view class="card-glow" style="background:{{item.glow}};"></view>
+      <view class="card-top">
+        <text class="card-dex">{{item.dexLabel}}</text>
+        <view class="fav-star {{item.isFav ? 'on' : ''}}" data-key="{{item.key}}" catchtap="toggleFav">
+          {{item.isFav ? '★' : '☆'}}
+        </view>
+      </view>
+
+      <view wx:if="{{item.formShort}}" class="form-badge {{item.form}}">{{item.formShort}}</view>
+
+      <view class="sprite-zone">
+        <image class="card-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
+      </view>
+
+      <text class="card-name">{{item.name}}</text>
+
+      <view class="card-types">
+        <view
+          wx:for="{{item.typesInfo}}"
+          wx:for-item="t"
+          wx:key="key"
+          class="mini-type"
+          style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
+        >{{t.name}}</view>
+      </view>
+
+      <view class="card-foot">
+        <view class="foot-stat">
+          <text class="foot-label">种族</text>
+          <text class="foot-value">{{item.total}}</text>
+        </view>
+        <view class="foot-divider"></view>
+        <view class="foot-stat">
+          <text class="foot-label">速度</text>
+          <text class="foot-value">{{item.speed}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{empty}}" class="empty page-pad">
+    <view class="empty-orb">
+      <view class="empty-orb-line"></view>
+      <view class="empty-orb-core"></view>
+    </view>
+    <text class="empty-title">{{onlyFav ? '还没有收藏的宝可梦' : '没有找到匹配的宝可梦'}}</text>
+    <text class="empty-sub">{{onlyFav ? '点击图鉴卡片右上角的星标即可收藏' : '试试更换属性、世代，或换一个关键词'}}</text>
+    <view class="empty-btn press" bindtap="clearFilters" hover-class="press-hover">清除全部筛选</view>
+  </view>
+
+  <view wx:if="{{!empty}}" class="list-foot">
+    <text wx:if="{{hasMore}}" class="list-foot-text">继续上滑，加载更多</text>
+    <text wx:else class="list-foot-text">已经到底啦 · 共 {{resultCount}} 只</text>
+  </view>
+
+  <view class="page-note">
+    <text>DATA UPDATE 2026.11</text>
+    <text class="page-note-dot">·</text>
+    <text>非官方粉丝作品</text>
+  </view>
+</view>

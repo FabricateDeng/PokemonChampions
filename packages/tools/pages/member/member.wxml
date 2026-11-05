@@ -1,0 +1,128 @@
+<nav-bar title="{{mon.name}}" back="{{true}}" />
+
+<view wx:if="{{hasMember}}" class="page member-page">
+  <view class="page-pad">
+    <view class="member-hero">
+      <view class="member-hero-top">
+        <view class="member-hero-types">
+          <view
+            wx:for="{{mon.typesInfo}}"
+            wx:for-item="t"
+            wx:key="key"
+            class="hero-type"
+            style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
+          >{{t.name}}</view>
+        </view>
+        <text class="team-label">{{teamName}}</text>
+      </view>
+      <image class="hero-sprite" src="{{mon.sprite}}" mode="aspectFit" />
+      <text class="hero-name">{{mon.name}}</text>
+      <text class="hero-dex">{{mon.dexLabel}}</text>
+    </view>
+
+    <view class="stat-panel">
+      <view class="panel-head">
+        <text class="section-title">能力值</text>
+        <text class="panel-note">Lv.50 / IV 31</text>
+      </view>
+      <view class="stat-grid">
+        <view wx:for="{{stats}}" wx:key="key" class="stat-card">
+          <text class="stat-label">{{item.label}}</text>
+          <text class="stat-value" style="color:{{item.color}};">{{item.value}}</text>
+        </view>
+      </view>
+      <view class="nature-note">{{natureEffectText}}</view>
+    </view>
+
+    <view class="config-panel">
+      <view class="panel-head">
+        <text class="section-title">特性与道具</text>
+        <text class="panel-note">自动保存</text>
+      </view>
+
+      <picker range="{{abilityOptions}}" range-key="name" value="{{abilityIndex}}" bindchange="onAbility">
+        <view class="picker-row">
+          <text class="picker-label">特性</text>
+          <text class="picker-value">{{abilityName}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+
+      <picker range="{{itemOptions}}" range-key="name" value="{{itemIndex}}" bindchange="onItem">
+        <view class="picker-row">
+          <text class="picker-label">道具</text>
+          <text class="picker-value">{{itemName}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+
+      <picker range="{{natureOptions}}" range-key="name" value="{{natureIndex}}" bindchange="onNature">
+        <view class="picker-row">
+          <text class="picker-label">性格</text>
+          <text class="picker-value">{{natureName}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="config-panel">
+      <view class="panel-head">
+        <text class="section-title">招式</text>
+        <text class="panel-note">最多 4 个</text>
+      </view>
+      <view wx:for="{{moveSlots}}" wx:key="index" class="move-slot">
+        <picker
+          range="{{moveOptions}}"
+          range-key="name"
+          value="{{item.optionIndex}}"
+          data-slot="{{item.index}}"
+          bindchange="onMove"
+        >
+          <view class="move-slot-row">
+            <text class="move-slot-index">{{item.index + 1}}</text>
+            <view class="move-slot-main">
+              <text class="move-slot-name {{item.empty ? 'empty' : ''}}">{{item.name}}</text>
+              <view wx:if="{{!item.empty}}" class="move-slot-type" style="color:{{item.typeColor}};background:{{item.typeBg}};">{{item.typeName}}</view>
+            </view>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="config-panel">
+      <view class="panel-head">
+        <text class="section-title">努力值分配</text>
+        <view class="sp-total {{spTotal >= 66 ? 'full' : ''}}">{{spTotal}} / 66</view>
+      </view>
+
+      <view class="sp-list">
+        <view wx:for="{{spView}}" wx:key="key" class="sp-row">
+          <view class="sp-label-wrap">
+            <view class="sp-dot" style="background:{{item.color}};"></view>
+            <text class="sp-label">{{item.label}}</text>
+          </view>
+          <view class="sp-controls">
+            <view class="sp-btn" data-index="{{item.index}}" data-delta="-1" bindtap="changeSp">−</view>
+            <text class="sp-value">{{item.value}}</text>
+            <view class="sp-btn" data-index="{{item.index}}" data-delta="1" bindtap="changeSp">+</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="sp-actions">
+        <view class="sp-reset" bindtap="resetSp">重置努力值</view>
+        <text class="sp-hint">单项 0–32 · 总和 66</text>
+      </view>
+    </view>
+
+    <view class="member-actions">
+      <view class="calc-link" bindtap="goCalc">进入伤害计算 →</view>
+      <view class="remove-link" bindtap="removeMember">移除宝可梦</view>
+    </view>
+
+    <view class="member-note">
+      <text>能力值按 Champions 规则计算；道具与特性对伤害的影响在伤害计算页处理。</text>
+    </view>
+  </view>
+</view>

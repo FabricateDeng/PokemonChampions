@@ -1,0 +1,186 @@
+<nav-bar title="伤害计算" back="{{true}}" />
+
+<view class="page calc-page">
+  <view class="page-pad">
+    <view class="calc-head">
+      <text class="calc-kicker">DAMAGE CALC</text>
+      <text class="calc-title">伤害计算</text>
+      <text class="calc-sub">基于队伍配置 · Lv.50 · 能力值与特性修正</text>
+    </view>
+
+    <view wx:if="{{!hasTeams}}" class="empty">
+      <view class="empty-orb">%</view>
+      <text class="empty-title">还没有可用的队伍</text>
+      <text class="empty-sub">先创建队伍并添加至少 2 只宝可梦</text>
+      <view class="empty-btn press" bindtap="goTeams" hover-class="press-hover">去创建队伍</view>
+    </view>
+
+    <view wx:elif="{{needsMembers}}" class="empty">
+      <view class="empty-orb">+</view>
+      <text class="empty-title">队伍人数不足</text>
+      <text class="empty-sub">伤害计算至少需要 2 只宝可梦</text>
+      <view class="empty-btn press" bindtap="goTeam" hover-class="press-hover">编辑当前队伍</view>
+    </view>
+
+    <block wx:else>
+      <view class="team-select">
+        <text class="team-select-label">使用队伍</text>
+        <picker range="{{teams}}" range-key="name" value="{{teamIndex}}" bindchange="onTeamChange">
+          <view class="team-select-value">{{teamName}} <text class="chevron">⌄</text></view>
+        </picker>
+        <view class="team-edit-link" bindtap="goTeam">编辑</view>
+      </view>
+
+      <view class="side-card attacker-card">
+        <view class="side-head">
+          <text class="side-tag attacker">攻击方</text>
+          <picker range="{{memberOptions}}" value="{{attackerIndex}}" bindchange="onAttacker">
+            <view class="side-select">切换 <text class="chevron">⌄</text></view>
+          </picker>
+        </view>
+        <view class="side-body">
+          <image class="side-sprite" src="{{attacker.sprite}}" mode="aspectFit" />
+          <view class="side-info">
+            <text class="side-name">{{attacker.name}}</text>
+            <view class="side-types">
+              <view
+                wx:for="{{attacker.typesInfo}}"
+                wx:for-item="t"
+                wx:key="key"
+                class="side-type"
+                style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
+              >{{t.name}}</view>
+            </view>
+            <text class="side-config">{{attacker.abilityName}} · {{attacker.itemName}} · {{attacker.natureName}}</text>
+          </view>
+        </view>
+        <view class="side-stats">
+          <view wx:for="{{attacker.stats}}" wx:for-item="s" wx:key="key" class="side-stat">
+            <text class="stat-label">{{s.label}}</text>
+            <text class="stat-value">{{s.value}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="side-card defender-card">
+        <view class="side-head">
+          <text class="side-tag defender">防守方</text>
+          <picker range="{{memberOptions}}" value="{{defenderIndex}}" bindchange="onDefender">
+            <view class="side-select">切换 <text class="chevron">⌄</text></view>
+          </picker>
+        </view>
+        <view class="side-body">
+          <image class="side-sprite" src="{{defender.sprite}}" mode="aspectFit" />
+          <view class="side-info">
+            <text class="side-name">{{defender.name}}</text>
+            <view class="side-types">
+              <view
+                wx:for="{{defender.typesInfo}}"
+                wx:for-item="t"
+                wx:key="key"
+                class="side-type"
+                style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
+              >{{t.name}}</view>
+            </view>
+            <text class="side-config">{{defender.abilityName}} · {{defender.itemName}} · {{defender.natureName}}</text>
+          </view>
+        </view>
+        <view class="side-stats">
+          <view wx:for="{{defender.stats}}" wx:for-item="s" wx:key="key" class="side-stat">
+            <text class="stat-label">{{s.label}}</text>
+            <text class="stat-value">{{s.value}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="field-panel">
+        <view class="field-row">
+          <text class="field-label">招式</text>
+          <picker range="{{moveOptions}}" range-key="name" value="{{moveIndex}}" bindchange="onMove">
+            <view class="field-value">{{moveName}} <text class="chevron">⌄</text></view>
+          </picker>
+        </view>
+
+        <view class="field-row">
+          <text class="field-label">天气</text>
+          <picker range="{{weatherOptions}}" value="{{weatherIndex}}" bindchange="onWeather">
+            <view class="field-value">{{weatherName}} <text class="chevron">⌄</text></view>
+          </picker>
+        </view>
+
+        <view class="field-row">
+          <text class="field-label">攻击强化</text>
+          <picker range="{{stageOptions}}" value="{{atkStageIndex}}" bindchange="onAtkStage">
+            <view class="field-value">{{atkStageName}} <text class="chevron">⌄</text></view>
+          </picker>
+        </view>
+
+        <view class="field-row">
+          <text class="field-label">防御强化</text>
+          <picker range="{{stageOptions}}" value="{{defStageIndex}}" bindchange="onDefStage">
+            <view class="field-value">{{defStageName}} <text class="chevron">⌄</text></view>
+          </picker>
+        </view>
+
+        <view class="switch-grid">
+          <view class="switch-item">
+            <text>暴击</text>
+            <switch checked="{{crit}}" color="#4de0c1" data-key="crit" bindchange="onToggle" />
+          </view>
+          <view class="switch-item">
+            <text>反射壁</text>
+            <switch checked="{{reflect}}" color="#4de0c1" data-key="reflect" bindchange="onToggle" />
+          </view>
+          <view class="switch-item">
+            <text>光墙</text>
+            <switch checked="{{lightScreen}}" color="#4de0c1" data-key="lightScreen" bindchange="onToggle" />
+          </view>
+          <view class="switch-item">
+            <text>灼伤</text>
+            <switch checked="{{burn}}" color="#4de0c1" data-key="burn" bindchange="onToggle" />
+          </view>
+          <view class="switch-item">
+            <text>帮助</text>
+            <switch checked="{{helpingHand}}" color="#4de0c1" data-key="helpingHand" bindchange="onToggle" />
+          </view>
+          <view class="switch-item">
+            <text>满 HP</text>
+            <switch checked="{{fullHp}}" color="#4de0c1" data-key="fullHp" bindchange="onToggle" />
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{result}}" class="result-card">
+        <view class="result-top">
+          <view>
+            <text class="result-move">{{result.moveName}}</text>
+            <text class="result-eff">{{result.effText}} · 威力 {{result.power}}</text>
+          </view>
+          <text class="result-cat">{{result.categoryName}}</text>
+        </view>
+        <view class="result-damage">
+          <text class="result-number">{{result.damageText}}</text>
+          <text class="result-percent">{{result.percentText}}</text>
+        </view>
+        <view class="result-bar">
+          <view class="result-bar-fill" style="width:{{result.percentMax > 100 ? 100 : result.percentMax}}%;"></view>
+        </view>
+        <view class="result-meta">
+          <view><text class="meta-label">击杀</text><text class="meta-value">{{result.koText}}</text></view>
+          <view><text class="meta-label">需要</text><text class="meta-value">{{result.hitsText}}</text></view>
+        </view>
+        <view wx:if="{{result.notes.length}}" class="result-notes">
+          <text wx:for="{{result.notes}}" wx:key="*this">· {{item}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{!result && resultReason}}" class="result-empty">
+        <text>{{resultReason}}</text>
+      </view>
+
+      <view class="calc-note">
+        <text>伤害为估算值，默认 16 档随机数；未覆盖部分特性、道具与多目标修正。结果仅供队伍配置参考。</text>
+      </view>
+    </block>
+  </view>
+</view>

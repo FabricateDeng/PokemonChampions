@@ -1,0 +1,145 @@
+<nav-bar title="关于" back="{{true}}" />
+
+<view class="page about-page">
+  <view class="page-pad">
+    <view class="about-hero">
+      <view class="about-mark">C</view>
+      <text class="about-kicker">POKÉMON CHAMPIONS</text>
+      <text class="about-title">冠军图鉴</text>
+      <text class="about-sub">为《宝可梦冠军》玩家准备的可用宝可梦速查工具</text>
+      <view class="version-pill">DATA 2026.11</view>
+    </view>
+
+    <view class="stat-grid">
+      <view class="stat-card">
+        <text class="stat-num">{{meta.count}}</text>
+        <text class="stat-label">宝可梦</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{meta.megaCount}}</text>
+        <text class="stat-label">超级进化</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{meta.moveCount}}</text>
+        <text class="stat-label">招式</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-num">{{meta.abilityCount}}</text>
+        <text class="stat-label">特性</text>
+      </view>
+    </view>
+
+    <view class="rank-entry press" bindtap="goRankings" hover-class="press-hover">
+      <view>
+        <text class="rank-entry-kicker">META RANKING</text>
+        <text class="rank-entry-title">使用率 TOP 50</text>
+      </view>
+      <text class="rank-entry-link">单打 / 双打 →</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">能做什么</text>
+      <view wx:for="{{features}}" wx:key="no" class="feature">
+        <text class="feature-no">{{item.no}}</text>
+        <view class="feature-content">
+          <text class="feature-title">{{item.title}}</text>
+          <text class="feature-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">数据说明</text>
+      <view class="info-card">
+        <view class="info-row">
+          <text class="info-key">宝可梦名单</text>
+          <text class="info-val">348 只，含 81 个超级进化与地区 / 特殊形态</text>
+        </view>
+        <view class="info-row">
+          <text class="info-key">规则环境</text>
+          <text class="info-val">M-A / M-B / M-C</text>
+        </view>
+        <view class="info-row">
+          <text class="info-key">数据字段</text>
+          <text class="info-val">种族值、属性、特性、招式威力 / 命中 / PP / 效果</text>
+        </view>
+        <view class="info-row">
+          <text class="info-key">单打榜单</text>
+          <text class="info-val">Smogon Champions BSS · 1760 分位 · 2026-10</text>
+        </view>
+        <view class="info-row">
+          <text class="info-key">双打榜单</text>
+          <text class="info-val">Limitless M-C · 2026-10-05 ~ 11-05 · 140 项赛事</text>
+        </view>
+        <view class="info-row">
+          <text class="info-key">配置样本</text>
+          <text class="info-val">单双打 TOP50 并集 78 只，其余宝可梦暂不展示配置使用率</text>
+        </view>
+        <view class="info-row">
+          <text class="info-key">最后更新</text>
+          <text class="info-val">2026 年 11 月</text>
+        </view>
+      </view>
+      <text class="info-note">图鉴数据随小程序版本更新；使用率数据支持远程更新。招式 PP、威力与可学习范围以《宝可梦冠军》游戏内数据为准。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">使用率数据</text>
+      <view class="info-card">
+        <view class="info-row">
+          <text class="info-key">单打</text>
+          <text class="info-val">Smogon Champions BSS 使用率表与 Chaos 配置数据，1760 分位，2026 年 10 月，87,848 场对战。</text>
+        </view>
+        <view class="info-row">
+          <text class="info-key">双打</text>
+          <text class="info-val">Limitless M-C 赛事样本，最近 30 天，140 项赛事；配置使用率来自赛事队伍统计。</text>
+        </view>
+        <view class="info-row">
+          <text class="info-key">努力值</text>
+          <text class="info-val">按 0–32 点 Champions SP 体系展示，取各形态最常见的 5 种分配。</text>
+        </view>
+      </view>
+      <text class="info-note">使用率为样本统计，不等同于胜负强度；样本量较小时百分比波动较大。使用率支持远程 JSON 热更新，未配置远程地址或请求失败时自动使用内置数据。</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">参考资料</text>
+      <view class="source-card">
+        <text class="source-name">OP.GG · Pokémon Champions Pokédex</text>
+        <text class="source-url" user-select>op.gg/zh-cn/pokemon-champions/pokedex</text>
+        <text class="source-desc">宝可梦名单、种族值、特性、招式与中文说明的主要数据来源。</text>
+      </view>
+      <view class="source-card">
+        <text class="source-name">Serebii.net · Champions Pokédex</text>
+        <text class="source-url" user-select>serebii.net/pokedex-champions</text>
+        <text class="source-desc">用于交叉核对可用名单、招式池与超级进化形态。</text>
+      </view>
+      <view class="source-card">
+        <text class="source-name">Smogon · Champions BSS Stats</text>
+        <text class="source-url" user-select>smogon.com/stats</text>
+        <text class="source-desc">单打使用率 TOP50、特性 / 招式 / 性格 / 道具 / 努力值配置统计。</text>
+      </view>
+      <view class="source-card">
+        <text class="source-name">PokeCamp · Limitless Champions</text>
+        <text class="source-url" user-select>pokecamp.cc/zh/champions</text>
+        <text class="source-desc">双打使用率 TOP50 与 Limitless 赛事配置统计。</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">免责声明</text>
+      <view class="disclaimer">
+        <text>本小程序为非官方粉丝作品，与 Nintendo、Creatures、GAME FREAK 及 The Pokémon Company 无任何关联。</text>
+        <text>宝可梦名称、图像及相关内容的版权归原权利人所有。数据仅供参考，实际以游戏内表现为准。</text>
+      </view>
+    </view>
+
+    <view class="home-btn press" bindtap="goHome" hover-class="press-hover">返回宝可梦图鉴</view>
+
+    <view class="about-foot">
+      <text>CHAMPIONS DEX</text>
+      <text class="about-foot-dot">·</text>
+      <text>MADE FOR TRAINERS</text>
+    </view>
+  </view>
+</view>

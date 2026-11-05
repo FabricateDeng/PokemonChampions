@@ -1,0 +1,87 @@
+.nav-shell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(7, 11, 20, 0.9);
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  padding: 0 216rpx 0 28rpx;
+}
+
+.back-btn {
+  width: 62rpx;
+  height: 62rpx;
+  margin-right: 8rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.back-hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.back-arrow {
+  width: 20rpx;
+  height: 20rpx;
+  margin-left: 8rpx;
+  border-left: 4rpx solid #f4f7fb;
+  border-bottom: 4rpx solid #f4f7fb;
+  transform: rotate(45deg);
+  border-radius: 2rpx;
+}
+
+.brand-mark {
+  width: 58rpx;
+  height: 58rpx;
+  margin-right: 16rpx;
+  border-radius: 18rpx;
+  background: linear-gradient(140deg, #ffe56f, #ffc531);
+  color: #171204;
+  font-size: 32rpx;
+  font-weight: 900;
+  line-height: 58rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 24rpx rgba(255, 205, 50, 0.22);
+  flex-shrink: 0;
+}
+
+.nav-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nav-title.with-back {
+  padding-left: 4rpx;
+}
+
+.nav-title-text {
+  font-size: 33rpx;
+  font-weight: 750;
+  letter-spacing: 0.4rpx;
+  color: #f7f9fd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-kicker {
+  margin-top: 1rpx;
+  font-size: 16rpx;
+  line-height: 20rpx;
+  letter-spacing: 2.4rpx;
+  color: rgba(255, 216, 77, 0.62);
+  font-weight: 600;
+}

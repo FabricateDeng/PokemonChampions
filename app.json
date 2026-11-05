@@ -1,0 +1,33 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/detail",
+    "pages/rankings/rankings",
+    "pages/moves/moves",
+    "pages/about/about"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#070B14",
+    "backgroundTextStyle": "dark",
+    "navigationBarTextStyle": "white",
+    "navigationBarBackgroundColor": "#070B14"
+  },
+  "subpackages": [
+    {
+      "root": "packages/tools",
+      "name": "tools",
+      "pages": [
+        "pages/teams/teams",
+        "pages/team/team",
+        "pages/picker/picker",
+        "pages/member/member",
+        "pages/calc/calc"
+      ]
+    }
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}
+

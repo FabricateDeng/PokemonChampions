@@ -1,0 +1,14 @@
+<view class="nav-shell" style="padding-top: {{statusBarHeight}}px;">
+  <view class="nav-inner" style="height: {{navBarHeight}}px;">
+    <view wx:if="{{back}}" class="back-btn" bindtap="goBack" hover-class="back-hover" aria-role="button" aria-label="返回">
+      <view class="back-arrow"></view>
+    </view>
+    <view wx:elif="{{brand}}" class="brand-mark">C</view>
+
+    <view class="nav-title {{back ? 'with-back' : ''}}">
+      <text class="nav-title-text">{{title}}</text>
+      <text wx:if="{{brand}}" class="nav-kicker">CHAMPIONS DEX</text>
+    </view>
+  </view>
+</view>
+<view style="height: {{navTotalHeight}}px;"></view>
