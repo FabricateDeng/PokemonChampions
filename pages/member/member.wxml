@@ -1,0 +1,265 @@
+<nav-bar title="{{mon.name || '配置'}}" subtitle="{{teamName}}" back="{{true}}" />
+
+<view class="page">
+  <view class="pad">
+    <view class="head">
+      <image class="head-sprite" src="{{mon.sprite}}" mode="aspectFit" />
+      <view class="head-info">
+        <view class="head-types">
+          <view
+            wx:for="{{mon.typesInfo}}"
+            wx:for-item="t"
+            wx:key="key"
+            class="tag"
+            style="color:{{t.color}};background:{{t.bg}};"
+          >{{t.name}}</view>
+        </view>
+        <text class="head-name">{{mon.name}}</text>
+        <text class="t-mini num">{{mon.dexLabel}} · 种族值 {{mon.total}}</text>
+      </view>
+    </view>
+
+    <!-- 能力值 -->
+    <view class="card block">
+      <view class="block-head">
+        <text class="t-section">能力值</text>
+        <text class="t-mini">Lv.50 / IV 31 · {{natureEffectText}}</text>
+      </view>
+      <view class="stat-grid">
+        <view wx:for="{{stats}}" wx:key="key" class="stat-cell">
+          <text class="stat-label">{{item.label}}</text>
+          <text class="stat-value num">{{item.value}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 特性 / 道具 / 性格 -->
+    <view class="card block">
+      <view class="block-head">
+        <text class="t-section">配置</text>
+        <text class="t-mini">自动保存</text>
+      </view>
+
+      <view class="cfg" data-kind="ability" bindtap="openSheet" hover-class="press-hover">
+        <text class="cfg-label">特性</text>
+        <text class="cfg-value ellipsis">{{abilityName}}</text>
+        <view class="chev"></view>
+      </view>
+
+      <view class="cfg" data-kind="item" bindtap="openSheet" hover-class="press-hover">
+        <text class="cfg-label">道具</text>
+        <text class="cfg-value ellipsis">{{itemName}}</text>
+        <view class="chev"></view>
+      </view>
+
+      <view class="cfg" data-kind="nature" bindtap="openSheet" hover-class="press-hover">
+        <text class="cfg-label">性格</text>
+        <text class="cfg-value ellipsis">{{natureName}}</text>
+        <text class="cfg-note">{{natureEffectText}}</text>
+        <view class="chev"></view>
+      </view>
+    </view>
+
+    <!-- 招式 -->
+    <view class="card block">
+      <view class="block-head">
+        <text class="t-section">招式</text>
+        <text class="t-mini">最多 4 个</text>
+      </view>
+
+      <view
+        wx:for="{{moveSlots}}"
+        wx:key="index"
+        class="mslot"
+        data-kind="move"
+        data-slot="{{item.index}}"
+        bindtap="openSheet"
+        hover-class="press-hover"
+      >
+        <text class="mslot-index num">{{item.index + 1}}</text>
+        <text class="mslot-name ellipsis {{item.empty ? 'text-3' : ''}}">{{item.name}}</text>
+        <view
+          wx:if="{{!item.empty}}"
+          class="tag"
+          style="color:{{item.typeColor}};background:{{item.typeBg}};"
+        >{{item.typeName}}</view>
+        <text wx:if="{{!item.empty}}" class="mslot-power num">威力 {{item.powerText}}</text>
+        <view class="chev"></view>
+      </view>    </view>
+
+    <!-- 努力值 -->
+    <view class="card block">
+      <view class="block-head">
+        <text class="t-section">努力值</text>
+        <view class="sp-total">
+          <text class="sp-total-num num">{{spTotal}}</text>
+          <text class="sp-total-max">/66</text>
+        </view>
+      </view>
+
+      <view wx:for="{{spView}}" wx:key="key" class="sp-row">
+        <text class="sp-label">{{item.label}}</text>
+        <view class="stepper">
+          <view
+            class="step-btn {{item.canMinus ? '' : 'off'}}"
+            data-index="{{item.index}}"
+            data-delta="-1"
+            bindtap="changeSp"
+            hover-class="press-hover"
+          >−</view>
+          <text class="step-value num">{{item.value}}</text>
+          <view
+            class="step-btn {{item.canPlus ? '' : 'off'}}"
+            data-index="{{item.index}}"
+            data-delta="1"
+            bindtap="changeSp"
+            hover-class="press-hover"
+          >+</view>
+        </view>
+      </view>
+
+      <view class="sp-foot">
+        <text class="t-mini">剩余 {{spLeft}} 点 · 单项上限 32</text>
+        <text class="sp-reset" bindtap="resetSp" hover-class="press-hover">重置</text>
+      </view>
+    </view>
+
+    <view class="remove" bindtap="removeMember" hover-class="press-hover">从队伍移除这只宝可梦</view>
+
+    <view class="foot-note">配置自动保存；道具与特性对伤害的影响在伤害计算页处理。</view>
+  </view>
+</view>
+
+<!-- 特性 -->
+<sheet show="{{sheet === 'ability'}}" title="{{sheetTitle}}" bind:close="closeSheet">
+  <view
+    wx:for="{{abilityList}}"
+    wx:key="key"
+    class="sheet-row"
+    data-key="{{item.key}}"
+    bindtap="pickAbility"
+    hover-class="press-hover"
+  >
+    <view class="grow">
+      <text class="sheet-row-name">{{item.name}}</text>
+      <text class="t-mini">{{item.desc}}</text>
+    </view>
+    <text wx:if="{{item.selected}}" class="opt-check">✓</text>
+  </view>
+  <view class="sheet-gap"></view>
+</sheet>
+
+<!-- 道具 -->
+<sheet show="{{sheet === 'item'}}" title="{{sheetTitle}}" bind:close="closeSheet">
+  <view class="search">
+    <view class="search-icon"></view>
+    <input
+      class="search-input"
+      value="{{itemQuery}}"
+      placeholder="搜索道具名称"
+      placeholder-class="ph"
+      confirm-type="search"
+      bindinput="onItemSearch"
+    />
+    <view wx:if="{{itemQuery}}" class="search-clear" bindtap="clearItemSearch" hover-class="press-hover">×</view>
+  </view>
+
+  <view class="list">
+    <view
+      wx:for="{{itemList}}"
+      wx:key="key"
+      class="sheet-row"
+      data-key="{{item.key}}"
+      bindtap="pickItem"
+      hover-class="press-hover"
+    >
+      <text class="grow opt-name ellipsis">{{item.name}}</text>
+      <text wx:if="{{item.selected}}" class="opt-check">✓</text>
+    </view>
+  </view>
+
+  <empty-state
+    wx:if="{{!itemList.length}}"
+    icon="search"
+    title="没有匹配的道具"
+    desc="试试更短的关键词"
+  />
+  <view class="sheet-gap"></view>
+</sheet>
+
+<!-- 性格 -->
+<sheet show="{{sheet === 'nature'}}" title="{{sheetTitle}}" bind:close="closeSheet">
+  <view
+    wx:for="{{natureList}}"
+    wx:key="key"
+    class="sheet-row"
+    data-key="{{item.key}}"
+    bindtap="pickNature"
+    hover-class="press-hover"
+  >
+    <text class="grow opt-name">{{item.name}}</text>
+    <text class="opt-note num">{{item.effect}}</text>
+    <text wx:if="{{item.selected}}" class="opt-check">✓</text>
+  </view>
+  <view class="sheet-gap"></view>
+</sheet>
+
+<!-- 招式 -->
+<sheet show="{{sheet === 'move'}}" title="第 {{moveSlotIndex + 1}} 个招式" bind:close="closeSheet">
+  <view class="search">
+    <view class="search-icon"></view>
+    <input
+      class="search-input"
+      value="{{moveQuery}}"
+      placeholder="搜索招式名称或效果"
+      placeholder-class="ph"
+      confirm-type="search"
+      bindinput="onMoveSearch"
+    />
+    <view wx:if="{{moveQuery}}" class="search-clear" bindtap="clearMoveSearch" hover-class="press-hover">×</view>
+  </view>
+
+  <view class="chip-wrap move-cats">
+    <view
+      wx:for="{{moveCats}}"
+      wx:key="key"
+      class="chip chip-sm {{moveCatIndex === index ? 'chip-on' : ''}}"
+      data-index="{{index}}"
+      bindtap="onMoveCat"
+      hover-class="press-hover"
+    >{{item.name}}</view>
+  </view>
+
+  <view class="list">
+    <view
+      wx:for="{{moveList}}"
+      wx:key="key"
+      class="move-opt"
+      data-key="{{item.key}}"
+      bindtap="pickMove"
+      hover-class="press-hover"
+    >
+      <view class="move-opt-main">
+        <view class="move-opt-top">
+          <text class="move-opt-name">{{item.name}}</text>
+          <view class="tag" style="color:{{item.typeColor}};background:{{item.typeBg}};">{{item.typeName}}</view>
+          <text class="tag-plain">{{item.catName}}</text>
+        </view>
+        <text class="move-opt-stats num">威力 {{item.powerText}} · 命中 {{item.accText}} · PP {{item.pp}}</text>
+      </view>
+      <text wx:if="{{item.selected}}" class="opt-check">✓</text>
+    </view>
+  </view>
+
+  <empty-state
+    wx:if="{{!moveList.length}}"
+    icon="search"
+    title="没有匹配的招式"
+    desc="试试更换分类或关键词"
+  />
+
+  <view class="btn btn-ghost sheet-clear" data-slot="{{moveSlotIndex}}" bindtap="clearMove" hover-class="press-hover">
+    清空这个招式位
+  </view>
+  <view class="sheet-gap"></view>
+</sheet>

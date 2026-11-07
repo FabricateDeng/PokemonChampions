@@ -1,0 +1,18 @@
+<view class="sh {{show ? 'sh-open' : ''}}">
+  <view class="sh-mask" bindtap="onClose" catchtouchmove="noop"></view>
+
+  <view class="sh-panel" catchtap="noop">
+    <view class="sh-grip"></view>
+
+    <view class="sh-head">
+      <text class="sh-title">{{title}}</text>
+      <view class="sh-done" bindtap="onClose" hover-class="press-hover">{{doneText}}</view>
+    </view>
+
+    <scroll-view class="sh-body" scroll-y enable-flex>
+      <slot></slot>
+    </scroll-view>
+
+    <view class="sh-safe"></view>
+  </view>
+</view>

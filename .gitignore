@@ -1,0 +1,7 @@
+node_modules/
+miniprogram_npm/
+*.log
+
+# 设计预览的中间产物（可用 node scripts/preview.js 重新生成，只提交最终 PNG）
+docs/preview/*.html
+docs/preview/frames/

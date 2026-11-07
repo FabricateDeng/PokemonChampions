@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "nav-bar": "/components/nav-bar/nav-bar",
+    "sheet": "/components/sheet/sheet",
+    "empty-state": "/components/empty-state/empty-state"
+  },
+  "navigationStyle": "custom",
+  "backgroundColor": "#0a0e14",
+  "backgroundTextStyle": "light"
+}

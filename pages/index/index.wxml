@@ -1,243 +1,243 @@
-<nav-bar title="冠军图鉴" brand="{{true}}" />
+<nav-bar title="图鉴" />
 
 <view class="page">
-  <view class="page-pad">
-    <view class="hero">
-      <view class="hero-mesh"></view>
-      <view class="hero-orbit orbit-a"></view>
-      <view class="hero-orbit orbit-b"></view>
-
-      <view class="hero-head">
-        <view class="hero-copy">
-          <text class="hero-kicker">POKÉMON CHAMPIONS</text>
-          <text class="hero-title">可用宝可梦图鉴</text>
-          <text class="hero-sub">种族值 · 特性 · 招式，一页查清</text>
-        </view>
-        <view class="hero-ball">
-          <view class="hero-ball-line"></view>
-          <view class="hero-ball-core"></view>
-        </view>
+  <!-- 吸顶：搜索 + 视图切换 + 属性 + 筛选（R3.2） -->
+  <view class="head" style="top:{{navTotalHeight}}px;">
+    <view class="pad">
+      <view class="search">
+        <view class="search-icon"></view>
+        <input
+          class="search-input"
+          value="{{query}}"
+          placeholder="{{mode === 'mon' ? '搜索名称 / 属性 / 特性 / 招式' : '搜索招式名称或效果'}}"
+          placeholder-class="ph"
+          confirm-type="search"
+          bindinput="onSearch"
+        />
+        <view wx:if="{{query}}" class="search-clear" bindtap="clearQuery" hover-class="press-hover">×</view>
       </view>
 
-      <view class="hero-stats">
-        <view class="hero-stat">
-          <text class="hero-num">{{meta.count}}</text>
-          <text class="hero-label">可用宝可梦</text>
-        </view>
-        <view class="hero-stat-sep"></view>
-        <view class="hero-stat">
-          <text class="hero-num">{{meta.megaCount}}</text>
-          <text class="hero-label">超级进化</text>
-        </view>
-        <view class="hero-stat-sep"></view>
-        <view class="hero-stat">
-          <text class="hero-num">{{meta.moveCount}}</text>
-          <text class="hero-label">可用招式</text>
-        </view>
+      <view class="seg-wrap">
+        <segmented items="{{modes}}" active="{{mode}}" bind:change="onMode" />
       </view>
 
-      <view class="hero-actions">
-        <view class="hero-action primary press" bindtap="openRankings" hover-class="press-hover">
-          <text>使用率榜</text>
-          <text class="hero-arrow">→</text>
-        </view>
-        <view class="hero-action compact press" bindtap="openMoves" hover-class="press-hover">
-          <text>招式库</text>
-        </view>
-        <view class="hero-action compact press" bindtap="openAbout" hover-class="press-hover">
-          <text>说明</text>
-        </view>
-      </view>
-
-      <view wx:if="{{singleTop && doubleTop}}" class="meta-teaser press" bindtap="openRankings" hover-class="press-hover">
-        <view class="meta-teaser-head">
-          <text class="meta-kicker">META SNAPSHOT</text>
-          <text class="meta-link">查看完整 TOP 50 →</text>
-        </view>
-        <view class="meta-teaser-body">
-          <view class="meta-side">
-            <image class="meta-sprite" src="{{singleTop.sprite}}" mode="aspectFit" />
-            <view class="meta-copy">
-              <text class="meta-tag">单打 #1</text>
-              <text class="meta-name">{{singleTop.name}}</text>
-            </view>
-            <text class="meta-pct">{{singleTop.usage}}%</text>
-          </view>
-          <view class="meta-sep"></view>
-          <view class="meta-side">
-            <image class="meta-sprite" src="{{doubleTop.sprite}}" mode="aspectFit" />
-            <view class="meta-copy">
-              <text class="meta-tag">双打 #1</text>
-              <text class="meta-name">{{doubleTop.name}}</text>
-            </view>
-            <text class="meta-pct">{{doubleTop.usage}}%</text>
+      <scroll-view class="rail chips" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="rail-inner">
+          <view
+            wx:for="{{typeList}}"
+            wx:key="key"
+            class="chip chip-sm {{typeKey === item.key ? 'chip-on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onType"
+            hover-class="press-hover"
+          >
+            <view class="chip-dot" style="background:{{item.color}};"></view>
+            <text>{{item.name}}</text>
           </view>
         </view>
+      </scroll-view>
+
+      <view class="filter" bindtap="openFilter" hover-class="press-hover">
+        <view class="filter-left">
+          <text class="filter-name">筛选</text>
+          <text wx:if="{{filterCount}}" class="filter-badge num">{{filterCount}}</text>
+          <text class="filter-sum ellipsis">{{summary}}</text>
+        </view>
+        <view class="chev"></view>
       </view>
     </view>
   </view>
 
-  <view class="quick-tools page-pad">
-    <view class="quick-tool press" bindtap="openTeams" hover-class="press-hover">
-      <view class="quick-tool-top">
-        <text class="quick-kicker">TEAM BUILDER</text>
-        <text class="quick-arrow">→</text>
+  <!-- 宝可梦视图 -->
+  <block wx:if="{{mode === 'mon'}}">
+    <view class="pad">
+      <view class="count">
+        <text class="count-num num">{{monCount}}</text>
+        <text class="count-unit">只</text>
+        <text wx:if="{{onlyFav}}" class="count-tag">收藏</text>
       </view>
-      <text class="quick-title">队伍编辑</text>
-      <text class="quick-sub">6 只 · 招式 · 能力值</text>
-    </view>
-    <view class="quick-tool press" bindtap="openCalc" hover-class="press-hover">
-      <view class="quick-tool-top">
-        <text class="quick-kicker">DAMAGE CALC</text>
-        <text class="quick-arrow">→</text>
-      </view>
-      <text class="quick-title">伤害计算</text>
-      <text class="quick-sub">队伍配置 · 实战推演</text>
-    </view>
-  </view>
 
-  <view class="tools page-pad">
-    <view class="search-box">
-      <view class="search-icon"></view>
-      <input
-        class="search-input"
-        value="{{query}}"
-        placeholder="搜索名称 / 属性 / 特性 / 招式"
-        placeholder-class="search-placeholder"
-        confirm-type="search"
-        bindinput="onSearchInput"
-      />
-      <view wx:if="{{query}}" class="search-clear" bindtap="clearSearch" hover-class="search-clear-hover">×</view>
-    </view>
-    <text class="search-tip">支持中文名、英文名、图鉴编号，以及特性 / 招式关键词</text>
-
-    <scroll-view class="type-rail" scroll-x enhanced show-scrollbar="{{false}}">
-      <view class="type-rail-inner">
+      <view wx:if="{{monList.length}}" class="grid">
         <view
-          wx:for="{{typeList}}"
+          wx:for="{{monList}}"
           wx:key="key"
-          class="type-chip {{typeKey === item.key ? 'active' : ''}}"
+          class="mon press"
           data-key="{{item.key}}"
-          bindtap="onTypeTap"
-          style="background:{{typeKey === item.key ? item.color : 'rgba(255,255,255,0.045)'}};border-color:{{typeKey === item.key ? item.color : 'rgba(255,255,255,0.09)'}};color:{{typeKey === item.key ? item.textOn : '#c9d2e0'}};"
+          bindtap="openDetail"
+          hover-class="press-hover"
         >
-          <view wx:if="{{item.key !== 'all'}}" class="type-dot" style="background:{{typeKey === item.key ? item.textOn : item.color}};"></view>
-          <text>{{item.name}}</text>
-        </view>
-      </view>
-    </scroll-view>
-
-    <scroll-view class="filter-rail" scroll-x enhanced show-scrollbar="{{false}}">
-      <view class="filter-rail-inner">
-        <picker mode="selector" range="{{genOptions}}" value="{{genIndex}}" bindchange="onGenChange">
-          <view class="filter-chip {{genIndex > 0 ? 'on' : ''}}">
-            <text>{{genLabel}}</text>
-            <view class="chevron"></view>
+          <view class="mon-head">
+            <text class="mon-dex num">{{item.dexLabel}}</text>
+            <text wx:if="{{item.formShort}}" class="mon-form">{{item.formShort}}</text>
+            <view
+              class="mon-star {{item.fav ? 'on' : ''}}"
+              data-key="{{item.key}}"
+              catchtap="toggleFav"
+              hover-class="star-hover"
+            >{{item.fav ? '★' : '☆'}}</view>
           </view>
-        </picker>
 
-        <picker mode="selector" range="{{formOptions}}" value="{{formIndex}}" bindchange="onFormChange">
-          <view class="filter-chip {{formIndex > 0 ? 'on' : ''}}">
-            <text>{{formLabel}}</text>
-            <view class="chevron"></view>
+          <image class="mon-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
+
+          <text class="mon-name ellipsis">{{item.name}}</text>
+          <view class="mon-types">
+            <view
+              wx:for="{{item.typesInfo}}"
+              wx:for-item="t"
+              wx:key="key"
+              class="tag"
+              style="color:{{t.color}};background:{{t.bg}};"
+            >{{t.name}}</view>
           </view>
-        </picker>
-
-        <picker mode="selector" range="{{sortOptions}}" value="{{sortIndex}}" bindchange="onSortChange">
-          <view class="filter-chip {{sortIndex > 0 ? 'on' : ''}}">
-            <text>排序 · {{sortLabel}}</text>
-            <view class="chevron"></view>
-          </view>
-        </picker>
-
-        <view class="filter-chip fav-chip {{onlyFav ? 'on' : ''}}" bindtap="toggleOnlyFav">
-          <text class="fav-glyph">{{onlyFav ? '★' : '☆'}}</text>
-          <text>收藏 {{favCount}}</text>
-        </view>
-
-        <view wx:if="{{hasFilters}}" class="filter-chip clear-chip" bindtap="clearFilters">
-          <text>清除筛选</text>
-        </view>
-      </view>
-    </scroll-view>
-
-    <view class="result-bar">
-      <view class="result-left">
-        <text class="result-count">{{resultCount}}</text>
-        <text class="result-unit">只宝可梦</text>
-      </view>
-      <text wx:if="{{query}}" class="result-hint">“{{query}}” 的搜索结果</text>
-      <text wx:else class="result-hint">按{{sortLabel}}排序</text>
-    </view>
-  </view>
-
-  <view wx:if="{{!empty}}" class="grid page-pad">
-    <view
-      wx:for="{{visibleList}}"
-      wx:key="key"
-      class="mon-card press"
-      data-key="{{item.key}}"
-      bindtap="openDetail"
-      hover-class="press-hover"
-    >
-      <view class="card-glow" style="background:{{item.glow}};"></view>
-      <view class="card-top">
-        <text class="card-dex">{{item.dexLabel}}</text>
-        <view class="fav-star {{item.isFav ? 'on' : ''}}" data-key="{{item.key}}" catchtap="toggleFav">
-          {{item.isFav ? '★' : '☆'}}
         </view>
       </view>
 
-      <view wx:if="{{item.formShort}}" class="form-badge {{item.form}}">{{item.formShort}}</view>
+      <empty-state
+        wx:else
+        icon="search"
+        title="没有匹配的宝可梦"
+        desc="换个关键词，或放宽属性与世代条件"
+        actionText="清除筛选"
+        bind:action="clearFilters"
+      />
 
-      <view class="sprite-zone">
-        <image class="card-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
-      </view>
-
-      <text class="card-name">{{item.name}}</text>
-
-      <view class="card-types">
-        <view
-          wx:for="{{item.typesInfo}}"
-          wx:for-item="t"
-          wx:key="key"
-          class="mini-type"
-          style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
-        >{{t.name}}</view>
-      </view>
-
-      <view class="card-foot">
-        <view class="foot-stat">
-          <text class="foot-label">种族</text>
-          <text class="foot-value">{{item.total}}</text>
-        </view>
-        <view class="foot-divider"></view>
-        <view class="foot-stat">
-          <text class="foot-label">速度</text>
-          <text class="foot-value">{{item.speed}}</text>
-        </view>
+      <view wx:if="{{monList.length}}" class="foot-note">
+        {{monHasMore ? '上滑加载更多' : '已显示全部 ' + monCount + ' 只'}}
       </view>
     </view>
-  </view>
+  </block>
 
-  <view wx:if="{{empty}}" class="empty page-pad">
-    <view class="empty-orb">
-      <view class="empty-orb-line"></view>
-      <view class="empty-orb-core"></view>
+  <!-- 招式视图 -->
+  <block wx:else>
+    <view class="pad">
+      <view class="count">
+        <text class="count-num num">{{moveCount}}</text>
+        <text class="count-unit">个招式</text>
+      </view>
+
+      <view wx:if="{{moveList.length}}" class="list">
+        <view wx:for="{{moveList}}" wx:key="key" class="mv">
+          <view class="mv-top">
+            <text class="mv-name ellipsis">{{item.name}}</text>
+            <view class="tag" style="color:{{item.typeColor}};background:{{item.typeBg}};">{{item.typeName}}</view>
+            <text class="tag-plain">{{item.catName}}</text>
+            <text wx:if="{{item.priorityText}}" class="mv-prio num">先制 {{item.priorityText}}</text>
+          </view>
+          <view class="mv-stats">
+            <text class="mv-stat">威力 <text class="num strong">{{item.powerText}}</text></text>
+            <text class="mv-stat">命中 <text class="num strong">{{item.accText}}</text></text>
+            <text class="mv-stat">PP <text class="num strong">{{item.pp}}</text></text>
+            <text class="mv-learn">{{item.learnText}}</text>
+          </view>
+          <text class="mv-desc">{{item.desc}}</text>
+        </view>
+      </view>
+
+      <empty-state
+        wx:else
+        icon="search"
+        title="没有匹配的招式"
+        desc="试试更换属性、分类，或换一个关键词"
+        actionText="清除筛选"
+        bind:action="clearFilters"
+      />
+
+      <view wx:if="{{moveList.length}}" class="foot-note">
+        {{moveHasMore ? '上滑加载更多' : '已显示全部 ' + moveCount + ' 个招式'}}
+      </view>
     </view>
-    <text class="empty-title">{{onlyFav ? '还没有收藏的宝可梦' : '没有找到匹配的宝可梦'}}</text>
-    <text class="empty-sub">{{onlyFav ? '点击图鉴卡片右上角的星标即可收藏' : '试试更换属性、世代，或换一个关键词'}}</text>
-    <view class="empty-btn press" bindtap="clearFilters" hover-class="press-hover">清除全部筛选</view>
-  </view>
+  </block>
 
-  <view wx:if="{{!empty}}" class="list-foot">
-    <text wx:if="{{hasMore}}" class="list-foot-text">继续上滑，加载更多</text>
-    <text wx:else class="list-foot-text">已经到底啦 · 共 {{resultCount}} 只</text>
-  </view>
+  <view class="foot-note">数据更新 2026.11 · 非官方粉丝作品</view>
 
-  <view class="page-note">
-    <text>DATA UPDATE 2026.11</text>
-    <text class="page-note-dot">·</text>
-    <text>非官方粉丝作品</text>
-  </view>
+  <sheet show="{{sheet}}" title="筛选与排序" bind:close="closeFilter">
+    <view wx:if="{{filterCount}}" class="sheet-reset" bindtap="clearFilters" hover-class="press-hover">
+      清除全部筛选
+    </view>
+
+    <block wx:if="{{mode === 'mon'}}">
+      <view class="sheet-sec">
+        <text class="sheet-label">世代</text>
+        <view class="chip-wrap">
+          <view
+            wx:for="{{genLabels}}"
+            wx:key="*this"
+            class="chip chip-sm {{genIndex === index ? 'chip-on' : ''}}"
+            data-index="{{index}}"
+            bindtap="onGen"
+            hover-class="press-hover"
+          >{{item}}</view>
+        </view>
+      </view>
+
+      <view class="sheet-sec">
+        <text class="sheet-label">形态</text>
+        <view class="chip-wrap">
+          <view
+            wx:for="{{formLabels}}"
+            wx:key="*this"
+            class="chip chip-sm {{formIndex === index ? 'chip-on' : ''}}"
+            data-index="{{index}}"
+            bindtap="onForm"
+            hover-class="press-hover"
+          >{{item}}</view>
+        </view>
+      </view>
+
+      <view class="sheet-sec">
+        <text class="sheet-label">排序</text>
+        <view class="chip-wrap">
+          <view
+            wx:for="{{monSorts}}"
+            wx:key="*this"
+            class="chip chip-sm {{sortIndex === index ? 'chip-on' : ''}}"
+            data-index="{{index}}"
+            bindtap="onSort"
+            hover-class="press-hover"
+          >{{item}}</view>
+        </view>
+      </view>
+
+      <view class="sheet-sec">
+        <text class="sheet-label">范围</text>
+        <view class="chip-wrap">
+          <view class="chip chip-sm {{onlyFav ? 'chip-on' : ''}}" bindtap="onOnlyFav" hover-class="press-hover">
+            只显示收藏
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="sheet-sec">
+        <text class="sheet-label">分类</text>
+        <view class="chip-wrap">
+          <view
+            wx:for="{{moveCats}}"
+            wx:key="key"
+            class="chip chip-sm {{moveCatIndex === index ? 'chip-on' : ''}}"
+            data-index="{{index}}"
+            bindtap="onMoveCat"
+            hover-class="press-hover"
+          >{{item.name}}</view>
+        </view>
+      </view>
+
+      <view class="sheet-sec">
+        <text class="sheet-label">排序</text>
+        <view class="chip-wrap">
+          <view
+            wx:for="{{moveSorts}}"
+            wx:key="*this"
+            class="chip chip-sm {{moveSortIndex === index ? 'chip-on' : ''}}"
+            data-index="{{index}}"
+            bindtap="onMoveSort"
+            hover-class="press-hover"
+          >{{item}}</view>
+        </view>
+      </view>
+    </block>
+
+    <view class="sheet-gap"></view>
+  </sheet>
 </view>

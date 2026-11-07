@@ -1,0 +1,203 @@
+<nav-bar title="伤害计算" back="{{true}}" />
+
+<view class="page">
+  <view class="pad">
+    <empty-state
+      wx:if="{{!hasTeams}}"
+      icon="plus"
+      title="还没有可用队伍"
+      desc="先创建一支队伍，并加入至少 2 只宝可梦"
+      actionText="去创建队伍"
+      bind:action="goTeams"
+    />
+
+    <empty-state
+      wx:elif="{{needsMembers}}"
+      icon="plus"
+      title="队伍人数不足"
+      desc="伤害计算至少需要 2 只宝可梦"
+      actionText="编辑这支队伍"
+      bind:action="goTeam"
+    />
+
+    <block wx:else>
+      <view class="team-bar" data-kind="team" bindtap="openSheet" hover-class="press-hover">
+        <text class="team-bar-label">队伍</text>
+        <text class="team-bar-name ellipsis">{{teamName}}</text>
+        <view class="chev"></view>
+      </view>
+
+      <view class="duo">
+        <view class="side" data-kind="attacker" bindtap="openSheet" hover-class="press-hover">
+          <text class="side-tag atk">攻击方</text>
+          <image class="side-sprite" src="{{attacker.sprite}}" mode="aspectFit" />
+          <text class="side-name ellipsis">{{attacker.name}}</text>
+          <text class="side-sub ellipsis">{{attacker.abilityName}}</text>
+          <view class="side-stats">
+            <text class="side-stat num">攻 {{attacker.attack}}</text>
+            <text class="side-stat num">特攻 {{attacker.spAttack}}</text>
+            <text class="side-stat num">速 {{attacker.speed}}</text>
+          </view>
+        </view>
+
+        <view class="side" data-kind="defender" bindtap="openSheet" hover-class="press-hover">
+          <text class="side-tag def">防守方</text>
+          <image class="side-sprite" src="{{defender.sprite}}" mode="aspectFit" />
+          <text class="side-name ellipsis">{{defender.name}}</text>
+          <text class="side-sub ellipsis">{{defender.itemName}}</text>
+          <view class="side-stats">
+            <text class="side-stat num">HP {{defender.hp}}</text>
+            <text class="side-stat num">防 {{defender.defense}}</text>
+            <text class="side-stat num">特防 {{defender.spDefense}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="card block">
+        <view class="block-head">
+          <text class="t-section">招式</text>
+          <text class="t-mini">来自攻击方配置</text>
+        </view>
+
+        <view wx:if="{{moveOptions.length}}" class="chip-wrap">
+          <view
+            wx:for="{{moveOptions}}"
+            wx:key="key"
+            class="chip chip-sm {{moveIndex === index ? 'chip-on' : ''}}"
+            data-index="{{index}}"
+            bindtap="onMove"
+            hover-class="press-hover"
+          >{{item.name}}</view>
+        </view>
+
+        <view wx:else class="move-none">
+          <text class="t-sub">攻击方还没有配置招式</text>
+          <view class="btn btn-ghost btn-sm" bindtap="goTeam" hover-class="press-hover">去配置</view>
+        </view>
+      </view>
+
+      <view class="card block">
+        <view class="block-head">
+          <text class="t-section">场地条件</text>
+          <text class="t-mini more-toggle" bindtap="toggleMore">{{more ? '收起' : '更多条件'}}</text>
+        </view>
+
+        <view class="chip-wrap">
+          <view class="chip chip-sm {{crit ? 'chip-on' : ''}}" data-key="crit" bindtap="toggleField" hover-class="press-hover">暴击</view>
+          <view class="chip chip-sm {{reflect ? 'chip-on' : ''}}" data-key="reflect" bindtap="toggleField" hover-class="press-hover">反射壁</view>
+          <view class="chip chip-sm {{lightScreen ? 'chip-on' : ''}}" data-key="lightScreen" bindtap="toggleField" hover-class="press-hover">光墙</view>
+          <view class="chip chip-sm {{burn ? 'chip-on' : ''}}" data-key="burn" bindtap="toggleField" hover-class="press-hover">灼伤</view>
+          <view class="chip chip-sm {{helpingHand ? 'chip-on' : ''}}" data-key="helpingHand" bindtap="toggleField" hover-class="press-hover">帮助</view>
+          <view class="chip chip-sm {{fullHp ? 'chip-on' : ''}}" data-key="fullHp" bindtap="toggleField" hover-class="press-hover">防守方满 HP</view>
+        </view>
+
+        <view wx:if="{{more}}" class="more">
+          <view class="more-row">
+            <text class="more-label">天气</text>
+            <view class="chip-group">
+              <view
+                wx:for="{{weathers}}"
+                wx:key="*this"
+                class="chip chip-sm {{weatherIndex === index ? 'chip-on' : ''}}"
+                data-index="{{index}}"
+                bindtap="onWeather"
+                hover-class="press-hover"
+              >{{item}}</view>
+            </view>
+          </view>
+
+          <view class="more-row">
+            <text class="more-label">攻击强化</text>
+            <view class="stepper">
+              <view class="step-btn" data-field="atk" data-delta="-1" bindtap="onStage" hover-class="press-hover">−</view>
+              <text class="step-value num">{{atkStageText}}</text>
+              <view class="step-btn" data-field="atk" data-delta="1" bindtap="onStage" hover-class="press-hover">+</view>
+            </view>
+          </view>
+
+          <view class="more-row">
+            <text class="more-label">防御强化</text>
+            <view class="stepper">
+              <view class="step-btn" data-field="def" data-delta="-1" bindtap="onStage" hover-class="press-hover">−</view>
+              <text class="step-value num">{{defStageText}}</text>
+              <view class="step-btn" data-field="def" data-delta="1" bindtap="onStage" hover-class="press-hover">+</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="dock-space"></view>
+    </block>
+  </view>
+</view>
+
+<view wx:if="{{hasTeams && !needsMembers}}" class="dock">
+  <view class="result">
+    <block wx:if="{{result}}">
+      <view class="result-top">
+        <text class="result-move ellipsis">{{result.moveName}}</text>
+        <text class="result-dmg num">{{result.damageText}}</text>
+      </view>
+      <view class="bar result-bar">
+        <view class="bar-fill" style="width:{{result.percentWidth}};"></view>
+      </view>
+      <view class="result-meta">
+        <text class="result-note">{{result.effText}} · {{result.categoryName}} · 威力 {{result.power}}</text>
+        <text class="result-pct num">{{result.percentText}}</text>
+      </view>
+      <view class="result-meta">
+        <text class="result-note">{{result.koText}}</text>
+        <text class="result-note">{{result.hitsText}}</text>
+      </view>
+    </block>
+    <text wx:else class="result-empty">{{resultReason}}</text>
+  </view>
+</view>
+
+<sheet show="{{sheet === 'team'}}" title="选择队伍" bind:close="closeSheet">
+  <view
+    wx:for="{{teams}}"
+    wx:key="id"
+    class="sheet-row"
+    data-index="{{index}}"
+    bindtap="onTeamPick"
+    hover-class="press-hover"
+  >
+    <view class="grow">
+      <text class="sheet-row-name">{{item.name}}</text>
+      <text class="t-mini">{{item.count}} / 6 只</text>
+    </view>
+    <text wx:if="{{teamIndex === index}}" class="opt-check">✓</text>
+  </view>
+  <view class="sheet-gap"></view>
+</sheet>
+
+<sheet show="{{sheet === 'attacker'}}" title="选择攻击方" bind:close="closeSheet">
+  <view
+    wx:for="{{memberOptions}}"
+    wx:key="*this"
+    class="sheet-row"
+    data-index="{{index}}"
+    bindtap="onAttackerPick"
+    hover-class="press-hover"
+  >
+    <text class="grow opt-name">{{item}}</text>
+    <text wx:if="{{attackerIndex === index}}" class="opt-check">✓</text>
+  </view>
+  <view class="sheet-gap"></view>
+</sheet>
+
+<sheet show="{{sheet === 'defender'}}" title="选择防守方" bind:close="closeSheet">
+  <view
+    wx:for="{{memberOptions}}"
+    wx:key="*this"
+    class="sheet-row"
+    data-index="{{index}}"
+    bindtap="onDefenderPick"
+    hover-class="press-hover"
+  >
+    <text class="grow opt-name">{{item}}</text>
+    <text wx:if="{{defenderIndex === index}}" class="opt-check">✓</text>
+  </view>
+  <view class="sheet-gap"></view>
+</sheet>

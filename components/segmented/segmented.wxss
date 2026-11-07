@@ -1,0 +1,52 @@
+.seg {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  height: 72rpx;
+  padding: 6rpx;
+  border-radius: var(--r-ctrl, 14rpx);
+  background: var(--surface-2, #1a222e);
+}
+
+.seg-item {
+  flex: 1;
+  min-width: 0;
+  height: 60rpx;
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  transition: background-color 0.14s ease;
+}
+
+/* 选中态与 chip 选中态保持同一套语言：brand-soft 底 + brand 文字 */
+.seg-item-on {
+  background: var(--brand-soft, rgba(242, 196, 85, 0.14));
+}
+
+.seg-item-hover {
+  opacity: 0.75;
+}
+
+.seg-label {
+  font-size: 26rpx;
+  line-height: 1;
+  color: var(--text-2, #98a3b4);
+  font-weight: 500;
+}
+
+.seg-item-on .seg-label {
+  color: var(--brand, #f2c455);
+  font-weight: 600;
+}
+
+.seg-badge {
+  font-size: 22rpx;
+  line-height: 1;
+  color: var(--text-3, #6a7585);
+}
+
+.seg-item-on .seg-badge {
+  color: var(--brand, #f2c455);
+}

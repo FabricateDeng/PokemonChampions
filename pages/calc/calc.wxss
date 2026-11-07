@@ -1,0 +1,191 @@
+/* 伤害计算：双方卡片 + 条件 + 常驻结果条 */
+
+.team-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  height: 72rpx;
+  margin-top: 16rpx;
+  padding: 0 20rpx;
+  border-radius: var(--r-ctrl);
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+}
+
+.team-bar-label {
+  font-size: 24rpx;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.team-bar-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------- 双方 */
+
+.duo {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 16rpx 12rpx 20rpx;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+}
+
+.side-tag {
+  align-self: flex-start;
+  height: 32rpx;
+  padding: 0 10rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  line-height: 32rpx;
+}
+
+.side-tag.atk {
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.side-tag.def {
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+.side-sprite {
+  width: 112rpx;
+  height: 112rpx;
+  margin: 4rpx 0;
+}
+
+.side-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 100%;
+}
+
+.side-sub {
+  font-size: 22rpx;
+  color: var(--text-3);
+  max-width: 100%;
+}
+
+.side-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6rpx 12rpx;
+  margin-top: 6rpx;
+}
+
+.side-stat {
+  font-size: 22rpx;
+  color: var(--text-2);
+}
+
+/* ---------------------------------------------------------------- 条件 */
+
+.more-toggle {
+  color: var(--brand);
+}
+
+.more {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.more-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.more-label {
+  font-size: 26rpx;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.move-none {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  align-items: flex-start;
+}
+
+/* ---------------------------------------------------------------- 结果 */
+
+.result {
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.result-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.result-move {
+  font-size: 26rpx;
+  color: var(--text-2);
+  min-width: 0;
+}
+
+.result-dmg {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.result-bar {
+  margin: 2rpx 0;
+}
+
+.result-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.result-note {
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+
+.result-pct {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.result-empty {
+  padding: 24rpx 0;
+  font-size: 26rpx;
+  color: var(--text-3);
+  text-align: center;
+}

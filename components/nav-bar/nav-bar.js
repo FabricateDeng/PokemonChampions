@@ -1,4 +1,11 @@
+const system = require('../../utils/system.js')
+
 Component({
+  options: {
+    // Let the component reuse global tokens/classes from app.wxss.
+    styleIsolation: 'apply-shared'
+  },
+
   properties: {
     title: {
       type: String,
@@ -8,27 +15,19 @@ Component({
       type: Boolean,
       value: false
     },
-    brand: {
-      type: Boolean,
-      value: false
+    subtitle: {
+      type: String,
+      value: ''
     }
   },
 
   data: {
-    statusBarHeight: 20,
-    navBarHeight: 44,
-    navTotalHeight: 64
+    m: system.getMetrics()
   },
 
   lifetimes: {
     attached() {
-      const app = getApp()
-      const g = (app && app.globalData) || {}
-      this.setData({
-        statusBarHeight: g.statusBarHeight || 20,
-        navBarHeight: g.navBarHeight || 44,
-        navTotalHeight: g.navTotalHeight || 64
-      })
+      this.setData({ m: system.getMetrics() })
     }
   },
 

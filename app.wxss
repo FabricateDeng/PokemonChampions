@@ -1,8 +1,36 @@
+/* ==========================================================================
+   冠军图鉴 · 全局设计令牌与基础组件
+   规范来源：docs/小程序界面交互设计规范.md
+   - 颜色只能用下面的令牌（R6.1）
+   - 字号只用 6 档，下限 22rpx（R5.1）
+   - 间距走 8 栅格（R4.1）
+   ========================================================================== */
+
 page {
-  background: #070b14;
-  color: #f4f7fb;
+  --bg: #0a0e14;
+  --surface: #131a24;
+  --surface-2: #1a222e;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --text: #e8edf5;
+  --text-2: #98a3b4;
+  --text-3: #6a7585;
+  --brand: #f2c455;
+  --brand-soft: rgba(242, 196, 85, 0.14);
+  --brand-line: rgba(242, 196, 85, 0.4);
+  --brand-ink: #221902;
+  --danger: #f0616f;
+  --danger-soft: rgba(240, 97, 111, 0.12);
+  --success: #3fbf9a;
+  --r-card: 24rpx;
+  --r-ctrl: 14rpx;
+  --r-tag: 8rpx;
+
+  background: var(--bg);
+  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
   font-size: 28rpx;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -12,7 +40,8 @@ scroll-view,
 image,
 input,
 picker,
-button {
+button,
+switch {
   box-sizing: border-box;
 }
 
@@ -20,6 +49,8 @@ button {
   padding: 0;
   margin: 0;
   background: transparent;
+  font-size: inherit;
+  color: inherit;
   line-height: normal;
 }
 
@@ -28,69 +59,234 @@ button::after {
 }
 
 input {
-  color: #f4f7fb;
+  color: var(--text);
 }
+
+/* ---------------------------------------------------------------- 布局 */
 
 .page {
   min-height: 100vh;
-  background:
-    radial-gradient(900rpx 600rpx at 88% -8%, rgba(255, 216, 77, 0.11), rgba(7, 11, 20, 0) 68%),
-    radial-gradient(720rpx 520rpx at -12% 16%, rgba(77, 224, 193, 0.08), rgba(7, 11, 20, 0) 70%),
-    #070b14;
+  background: var(--bg);
 }
 
-.page-pad {
-  padding-left: 28rpx;
-  padding-right: 28rpx;
+.pad {
+  padding-left: 24rpx;
+  padding-right: 24rpx;
 }
 
-.safe-bottom {
-  padding-bottom: calc(36rpx + env(safe-area-inset-bottom));
+.wrap {
+  padding-bottom: 40rpx;
 }
 
-.muted {
-  color: #8a96ab;
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
-.gold {
-  color: #ffd84d;
+.stack-lg {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
 }
 
-.card {
-  background: #111827;
-  border: 1rpx solid rgba(255, 255, 255, 0.075);
-  border-radius: 28rpx;
-}
-
-.press {
-  transition: transform 0.12s ease, opacity 0.12s ease;
-}
-
-.press:active {
-  transform: scale(0.985);
-  opacity: 0.9;
-}
-
-.press-hover {
-  transform: scale(0.985);
-  opacity: 0.9;
-}
-
-.section-title {
+.row {
   display: flex;
   align-items: center;
-  gap: 14rpx;
-  font-size: 30rpx;
-  font-weight: 700;
-  letter-spacing: 0.5rpx;
+  gap: 16rpx;
 }
 
-.section-title::before {
-  content: "";
-  width: 6rpx;
-  height: 26rpx;
-  border-radius: 6rpx;
-  background: #ffd84d;
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.divider {
+  height: 1rpx;
+  background: var(--line);
+}
+
+/* 页面主区块标题 */
+.section {
+  margin-top: 32rpx;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+/* 卡片内的分区块 */
+.block {
+  margin-top: 16rpx;
+}
+
+.block:first-child {
+  margin-top: 0;
+}
+
+.block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+/* 结果计数行 */
+.count {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  padding: 24rpx 0 16rpx;
+}
+
+.count-num {
+  font-size: 40rpx;
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.count-unit {
+  font-size: 24rpx;
+  color: var(--text-2);
+}
+
+/* 下拉箭头 */
+.chev {
+  width: 14rpx;
+  height: 14rpx;
+  margin-top: -6rpx;
+  border-right: 3rpx solid var(--text-3);
+  border-bottom: 3rpx solid var(--text-3);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+/* 面板内选项 */
+.opt-name {
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+.opt-note {
+  font-size: 22rpx;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.opt-check {
+  flex-shrink: 0;
+  font-size: 26rpx;
+  color: var(--brand);
+}
+
+/* 加减步进器 */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 4rpx;
+  border-radius: 12rpx;
+  background: var(--surface-2);
+}
+
+.step-btn {
+  width: 64rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+  line-height: 1;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.step-btn.off {
+  color: var(--text-3);
+  opacity: 0.5;
+}
+
+.step-value {
+  width: 64rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------- 文字 */
+
+.t-display {
+  font-size: 40rpx;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.t-title {
+  font-size: 36rpx;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.t-section {
+  font-size: 30rpx;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.t-body {
+  font-size: 28rpx;
+  line-height: 1.45;
+}
+
+.t-sub {
+  font-size: 24rpx;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+.t-mini {
+  font-size: 22rpx;
+  line-height: 1.35;
+  color: var(--text-3);
+}
+
+.text-2 {
+  color: var(--text-2);
+}
+
+.text-3 {
+  color: var(--text-3);
+}
+
+.brand {
+  color: var(--brand);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.strong {
+  font-weight: 600;
 }
 
 .ellipsis {
@@ -99,9 +295,517 @@ input {
   white-space: nowrap;
 }
 
-/* Hide scrollbars for horizontal chip rails */
+.clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* ---------------------------------------------------------------- 容器 */
+
+.card {
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+  border-radius: var(--r-card);
+  padding: 24rpx;
+}
+
+.card-flat {
+  background: var(--surface);
+  border-radius: var(--r-card);
+  padding: 24rpx;
+}
+
+.inset {
+  background: var(--surface-2);
+  border-radius: var(--r-ctrl);
+}
+
+/* ---------------------------------------------------------------- 点击反馈 */
+
+.press {
+  transition: transform 0.12s ease, opacity 0.12s ease, background-color 0.12s ease;
+}
+
+.press-hover {
+  transform: scale(0.985);
+  opacity: 0.92;
+}
+
+/* ---------------------------------------------------------------- 标签 */
+
+/* 属性标签：彩色文字 + 14% 同色底，无描边（R6.3） */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 36rpx;
+  padding: 0 12rpx;
+  border-radius: var(--r-tag);
+  font-size: 22rpx;
+  line-height: 1;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tag-plain {
+  display: inline-flex;
+  align-items: center;
+  height: 32rpx;
+  padding: 0 10rpx;
+  border-radius: var(--r-tag);
+  font-size: 22rpx;
+  line-height: 1;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 32rpx;
+  padding: 0 10rpx;
+  border-radius: var(--r-tag);
+  font-size: 22rpx;
+  line-height: 1;
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+/* ---------------------------------------------------------------- Chip 选项 */
+
+.chip-group {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  height: 64rpx;
+  padding: 0 20rpx;
+  border-radius: var(--r-ctrl);
+  border: 1rpx solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 26rpx;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chip-on {
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-color: var(--brand-line);
+  font-weight: 500;
+}
+
+.chip-sm {
+  height: 56rpx;
+  padding: 0 16rpx;
+  font-size: 24rpx;
+}
+
+.chip-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------- 按钮 */
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  height: 88rpx;
+  padding: 0 32rpx;
+  border-radius: var(--r-ctrl);
+  font-size: 28rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-weight: 600;
+}
+
+.btn-ghost {
+  background: var(--surface-2);
+  border: 1rpx solid var(--line);
+  color: var(--text);
+}
+
+.btn-text {
+  height: 64rpx;
+  padding: 0 16rpx;
+  font-size: 26rpx;
+  color: var(--brand);
+}
+
+.btn-sm {
+  height: 64rpx;
+  padding: 0 20rpx;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+}
+
+.btn-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.btn-disabled {
+  opacity: 0.45;
+}
+
+/* ---------------------------------------------------------------- 搜索框 */
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: var(--r-ctrl);
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+}
+
+.search-icon {
+  position: relative;
+  width: 26rpx;
+  height: 26rpx;
+  border: 3rpx solid var(--text-3);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.search-icon::after {
+  content: "";
+  position: absolute;
+  right: -10rpx;
+  bottom: -4rpx;
+  width: 14rpx;
+  height: 3rpx;
+  border-radius: 2rpx;
+  background: var(--text-3);
+  transform: rotate(45deg);
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  height: 88rpx;
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+.ph {
+  color: var(--text-3);
+  font-size: 26rpx;
+}
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 30rpx;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------- 横向滚动条 */
+
+.rail {
+  width: calc(100% + 48rpx);
+  margin-left: -24rpx;
+  white-space: nowrap;
+}
+
+.rail-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 0 24rpx;
+}
+
 ::-webkit-scrollbar {
   width: 0;
   height: 0;
   display: none;
+}
+
+/* ---------------------------------------------------------------- 列表行 */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  min-height: 112rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.thumb {
+  width: 88rpx;
+  height: 88rpx;
+  flex-shrink: 0;
+}
+
+.item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.item-title {
+  font-size: 28rpx;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.item-right {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6rpx;
+}
+
+/* ---------------------------------------------------------------- 数值条 */
+
+.bar {
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: var(--brand);
+}
+
+/* ---------------------------------------------------------------- 固定底栏 */
+
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  background: rgba(17, 23, 32, 0.98);
+  border-top: 1rpx solid var(--line);
+  box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.35);
+}
+
+.dock-inner {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+}
+
+/* 为固定底栏预留滚动空间 */
+.dock-space {
+  height: calc(136rpx + env(safe-area-inset-bottom));
+}
+
+/* ---------------------------------------------------------------- 其它 */
+
+.foot-note {
+  padding: 32rpx 0 8rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+
+.disclaimer {
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.hidden {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- 招式行
+   共用：图鉴「招式」视图 / 详情「招式」视图 */
+
+.mv {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.mv:last-child {
+  border-bottom: none;
+}
+
+.mv-top {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.mv-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 320rpx;
+}
+
+.mv-prio {
+  font-size: 22rpx;
+  color: var(--success);
+}
+
+.mv-stats {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-top: 10rpx;
+}
+
+.mv-stat {
+  font-size: 24rpx;
+  color: var(--text-3);
+}
+
+.mv-learn {
+  margin-left: auto;
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+
+.mv-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+/* ---------------------------------------------------------------- 底部面板内容 */
+
+.sheet-sec {
+  padding: 24rpx 0 20rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.sheet-label {
+  display: block;
+  margin-bottom: 16rpx;
+  font-size: 24rpx;
+  color: var(--text-3);
+}
+
+.sheet-gap {
+  height: 24rpx;
+}
+
+.sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.sheet-row:last-of-type {
+  border-bottom: none;
+}
+
+.sheet-row-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.sheet-row-state {
+  flex-shrink: 0;
+  height: 56rpx;
+  padding: 0 20rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  line-height: 56rpx;
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.sheet-row-state.off {
+  color: var(--text-3);
+  background: var(--surface-2);
+}
+
+.sheet-empty {
+  padding: 32rpx 0;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- 底栏图标按钮 */
+
+.dock-fav {
+  width: 88rpx;
+  height: 88rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-ctrl);
+  border: 1rpx solid var(--line);
+  background: var(--surface-2);
+  font-size: 40rpx;
+  line-height: 1;
+  color: var(--text-3);
+}
+
+.dock-fav.on {
+  color: var(--brand);
+  border-color: var(--brand-line);
+  background: var(--brand-soft);
 }

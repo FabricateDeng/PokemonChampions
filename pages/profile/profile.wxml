@@ -1,0 +1,92 @@
+<nav-bar title="我的" />
+
+<view class="page">
+  <view class="pad">
+    <!-- 收藏 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="t-section">收藏</text>
+        <text class="t-mini">{{favCount}} 只</text>
+      </view>
+
+      <view wx:if="{{favs.length}}" class="fav-grid">
+        <view
+          wx:for="{{favs}}"
+          wx:key="key"
+          class="fav press"
+          data-key="{{item.key}}"
+          bindtap="openDetail"
+          hover-class="press-hover"
+        >
+          <image class="fav-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
+          <text class="fav-name ellipsis">{{item.name}}</text>
+        </view>
+      </view>
+
+      <empty-state
+        wx:else
+        icon="star"
+        title="还没有收藏"
+        desc="在图鉴列表点卡片右上角的星标即可收藏"
+        actionText="去图鉴看看"
+        bind:action="goIndex"
+      />
+    </view>
+
+    <!-- 队伍 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="t-section">我的队伍</text>
+      </view>
+      <view class="card row-card press" bindtap="goTeams" hover-class="press-hover">
+        <view class="grow">
+          <text class="row-card-title">{{teamCount}} 支队伍</text>
+          <text class="t-mini">配置招式、努力值，并做伤害推演</text>
+        </view>
+        <view class="chev"></view>
+      </view>
+    </view>
+
+    <!-- 数据说明 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="t-section">数据说明</text>
+      </view>
+      <view class="card">
+        <view wx:for="{{infoRows}}" wx:key="key" class="info">
+          <text class="info-label">{{item.label}}</text>
+          <text class="info-value">{{item.value}}</text>
+        </view>
+      </view>
+      <text class="t-mini info-note">使用率为样本统计，不等同于强度排名；样本量小时波动较大。</text>
+    </view>
+
+    <!-- 来源 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="t-section">数据来源</text>
+      </view>
+      <view class="card">
+        <view wx:for="{{sources}}" wx:key="key" class="source">
+          <text class="source-name">{{item.name}}</text>
+          <text class="source-url" user-select>{{item.url}}</text>
+          <text class="t-mini">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 关于 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="t-section">关于</text>
+        <text class="t-mini">v{{version}}</text>
+      </view>
+      <view class="card">
+        <text class="disclaimer">本小程序为非官方粉丝作品，与 Nintendo、Creatures、GAME FREAK 及 The Pokémon Company 无任何关联。</text>
+        <text class="disclaimer disclaimer-gap">宝可梦名称、图像及相关内容的版权归原权利人所有。数据仅供参考，实际以游戏内表现为准。</text>
+      </view>
+    </view>
+
+    <view class="foot-note">CHAMPIONS DEX · 数据更新 {{meta.updated}}</view>
+  </view>
+</view>

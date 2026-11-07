@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "nav-bar": "/components/nav-bar/nav-bar",
+    "sheet": "/components/sheet/sheet"
+  },
+  "navigationStyle": "custom",
+  "backgroundColor": "#0a0e14",
+  "backgroundTextStyle": "light"
+}

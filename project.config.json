@@ -11,12 +11,33 @@
       "disablePlugins": [],
       "outputPath": ""
     },
-    "useCompilerPlugins": false
+    "useCompilerPlugins": false,
+    "compileWorklet": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": false
   },
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "folder",
+        "value": "scripts"
+      },
+      {
+        "type": "suffix",
+        "value": ".md"
+      }
+    ],
     "include": []
   },
   "appid": "wxa9549a4be5e7c944",

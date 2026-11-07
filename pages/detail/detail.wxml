@@ -1,379 +1,269 @@
-<nav-bar title="{{navTitle}}" back="{{true}}" />
+<nav-bar title="{{mon.name || '宝可梦详情'}}" back="{{true}}" />
 
-<view wx:if="{{notFound}}" class="not-found page">
-  <view class="not-found-orb">?</view>
-  <text class="not-found-title">没有找到这只宝可梦</text>
-  <text class="not-found-sub">它可能不在当前图鉴数据中</text>
-  <view class="not-found-btn press" bindtap="goHome">返回图鉴</view>
+<view wx:if="{{notFound}}" class="page">
+  <empty-state
+    icon="search"
+    title="没有找到这只宝可梦"
+    desc="它可能不在当前图鉴数据中"
+    actionText="返回图鉴"
+    bind:action="goHome"
+  />
 </view>
 
-<view wx:if="{{mon}}" class="page detail-page">
-  <view class="hero" style="background:{{mon.heroBg}};">
-    <view class="hero-grid"></view>
-    <text class="hero-watermark">{{mon.dexLabel}}</text>
+<view wx:else class="page">
+  <view class="pad">
+    <view class="hero">
+      <view class="hero-info">
+        <text class="hero-name">{{mon.name}}</text>
 
-    <view class="hero-top">
-      <view class="tag-row">
-        <view wx:for="{{mon.tagItems}}" wx:key="name" class="tag {{item.cls}}">{{item.name}}</view>
-        <view class="tag reg">规则 {{mon.reg}}</view>
-      </view>
-      <view class="hero-fav {{fav ? 'on' : ''}}" bindtap="toggleFav">
-        {{fav ? '★' : '☆'}}
-      </view>
-    </view>
+        <view class="hero-types">
+          <view
+            wx:for="{{mon.typesInfo}}"
+            wx:for-item="t"
+            wx:key="key"
+            class="tag"
+            style="color:{{t.color}};background:{{t.bg}};"
+          >{{t.name}}</view>
+          <text wx:if="{{mon.formShort}}" class="tag-badge">{{mon.formLabel}}</text>
+        </view>
 
-    <view class="hero-sprite-wrap">
-      <view class="hero-ring" style="border-color:{{mon.ringColor}};"></view>
-      <view class="hero-ring inner" style="border-color:{{mon.ringColor}};"></view>
-      <image class="hero-sprite" src="{{mon.sprite}}" mode="aspectFit" style="filter: drop-shadow(0 20rpx 26rpx rgba(0,0,0,.35));" />
-    </view>
+        <text class="hero-meta num">{{mon.dexLabel}} · 第 {{mon.gen}} 世代 · 种族值 {{mon.total}} · 规则 {{mon.reg}}</text>
+      </view>
 
-    <view class="hero-info">
-      <text class="hero-name">{{mon.name}}</text>
-      <view class="hero-types">
-        <view
-          wx:for="{{mon.typesInfo}}"
-          wx:for-item="t"
-          wx:key="key"
-          class="hero-type"
-          style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
-        >{{t.name}}</view>
-      </view>
-      <view class="hero-meta">
-        <text>第 {{mon.gen}} 世代</text>
-        <text class="meta-dot">·</text>
-        <text>{{mon.total}} 种族值</text>
-        <text class="meta-dot">·</text>
-        <text>No.{{mon.dex}}</text>
-      </view>
+      <image class="hero-sprite" src="{{mon.sprite}}" mode="aspectFit" />
     </view>
   </view>
 
   <view class="tabs" style="top:{{navTotalHeight}}px;">
-    <view class="tab {{activeTab === 'stats' ? 'active' : ''}}" data-tab="stats" bindtap="onTab">
-      <text>种族值</text>
-    </view>
-    <view class="tab {{activeTab === 'abilities' ? 'active' : ''}}" data-tab="abilities" bindtap="onTab">
-      <text>特性</text>
-      <text class="tab-count">{{abilities.length}}</text>
-    </view>
-    <view class="tab {{activeTab === 'moves' ? 'active' : ''}}" data-tab="moves" bindtap="onTab">
-      <text>招式</text>
-      <text class="tab-count">{{mon.moveCount}}</text>
-    </view>
-    <view class="tab {{activeTab === 'usage' ? 'active' : ''}}" data-tab="usage" bindtap="onTab">
-      <text>使用率</text>
+    <view class="pad">
+      <segmented items="{{tabs}}" active="{{activeTab}}" bind:change="onTab" />
     </view>
   </view>
 
-  <view wx:if="{{activeTab === 'stats'}}" class="tab-body page-pad">
-    <view class="panel">
-      <view class="panel-head">
-        <text class="section-title">种族值</text>
-        <view class="total-pill">总和 <text class="total-num">{{mon.total}}</text></view>
+  <!-- 数据 -->
+  <view wx:if="{{activeTab === 'stats'}}" class="pad">
+    <view class="card block">
+      <view class="block-head">
+        <text class="t-section">种族值</text>
+        <view class="bst">
+          <text class="bst-num num">{{mon.total}}</text>
+          <text class="bst-label">总和</text>
+        </view>
       </view>
 
-      <view class="stat-list">
-        <view wx:for="{{stats}}" wx:key="key" class="stat-row">
+      <view class="stats">
+        <view wx:for="{{stats}}" wx:key="key" class="stat">
           <text class="stat-label">{{item.label}}</text>
-          <text class="stat-value">{{item.value}}</text>
-          <view class="stat-track">
-            <view class="stat-fill" style="width:{{item.percent}};background:{{item.color}};"></view>
+          <text class="stat-value num">{{item.value}}</text>
+          <view class="bar stat-bar">
+            <view class="bar-fill" style="width:{{item.percent}};"></view>
           </view>
         </view>
       </view>
 
       <view class="rank-row">
-        <text>种族值排名</text>
-        <text class="rank-num">#{{totalRank}}</text>
-        <text class="rank-total">/ {{meta.count}}</text>
-        <text class="rank-hint">含全部形态</text>
+        <text class="t-mini">种族值排名</text>
+        <text class="rank-num num">#{{totalRank}}</text>
+        <text class="t-mini">/ {{totalCount}} · 含全部形态</text>
       </view>
     </view>
 
-    <view class="panel">
-      <view class="panel-head">
-        <text class="section-title">属性相性</text>
-        <text class="panel-note">不计特性</text>
+    <view class="card block">
+      <view class="block-head">
+        <text class="t-section">属性相性</text>
+        <text class="t-mini">不计特性与道具</text>
       </view>
 
-      <view class="matchup-list">
-        <view wx:for="{{matchupGroups}}" wx:key="key" class="matchup-row">
-          <view class="matchup-label {{item.tone}}">
-            <text class="matchup-name">{{item.label}}</text>
-            <text class="matchup-mult">{{item.mult}}</text>
+      <view class="matchups">
+        <view wx:for="{{matchups}}" wx:key="key" class="mu">
+          <view class="mu-label {{item.tone}}">
+            <text class="mu-mult num">{{item.mult}}</text>
+            <text class="mu-name">{{item.label}}</text>
           </view>
-          <view class="matchup-types">
+          <view class="mu-types">
             <view
               wx:for="{{item.types}}"
               wx:for-item="t"
               wx:key="key"
-              class="match-type"
-              style="color:{{t.color}};background:{{t.bg}};border-color:{{t.border}};"
+              class="tag"
+              style="color:{{t.color}};background:{{t.bg}};"
             >{{t.name}}</view>
           </view>
         </view>
       </view>
-
-      <text class="footnote">仅按属性组合计算，未计入特性、道具与场地效果。</text>
     </view>
-  </view>
 
-  <view wx:if="{{activeTab === 'abilities'}}" class="tab-body page-pad">
-    <view class="panel">
-      <view class="panel-head">
-        <text class="section-title">特性</text>
-        <text class="panel-note">{{abilities.length}} 个</text>
+    <view class="card block">
+      <view class="block-head">
+        <text class="t-section">特性</text>
+        <text class="t-mini">{{abilities.length}} 个</text>
       </view>
 
-      <view wx:for="{{abilities}}" wx:key="key" class="ability-card">
-        <view class="ability-index">{{item.index}}</view>
-        <view class="ability-content">
-          <text class="ability-name">{{item.name}}</text>
-          <text class="ability-desc">{{item.desc}}</text>
+      <view class="abilities">
+        <view wx:for="{{abilities}}" wx:key="key" class="ability">
+          <text class="ability-index num">{{item.index}}</text>
+          <view class="ability-main">
+            <text class="ability-name">{{item.name}}</text>
+            <text class="ability-desc">{{item.desc}}</text>
+          </view>
         </view>
       </view>
-
-      <text class="footnote">特性效果以《宝可梦冠军》当前版本为准。</text>
     </view>
   </view>
 
-  <view wx:if="{{activeTab === 'moves'}}" class="tab-body page-pad">
-    <view class="move-panel">
-      <view class="panel-head">
-        <text class="section-title">可用招式</text>
-        <text class="panel-note">共 {{mon.moveCount}} 个</text>
-      </view>
-
-      <view class="move-search">
-        <view class="move-search-icon"></view>
-        <input
-          class="move-search-input"
-          value="{{moveQuery}}"
-          placeholder="搜索招式名称或效果"
-          placeholder-class="move-search-placeholder"
-          bindinput="onMoveSearch"
-        />
-        <view wx:if="{{moveQuery}}" class="move-search-clear" bindtap="clearMoveSearch">×</view>
-      </view>
-
-      <view class="move-cats">
+  <!-- 招式 -->
+  <view wx:if="{{activeTab === 'moves'}}" class="pad">
+    <view class="move-bar">
+      <view class="chip-group">
         <view
           wx:for="{{moveCats}}"
           wx:key="key"
-          class="cat-chip {{moveCat === item.key ? 'active' : ''}}"
-          data-cat="{{item.key}}"
+          class="chip chip-sm {{moveCatIndex === index ? 'chip-on' : ''}}"
+          data-index="{{index}}"
           bindtap="onMoveCat"
-        >
-          <text>{{item.name}}</text>
-          <text class="cat-count">{{item.count}}</text>
-        </view>
+          hover-class="press-hover"
+        >{{item.name}}</view>
       </view>
+      <text class="t-mini num">{{moves.length}} 个</text>
+    </view>
 
-      <view class="move-sort-row">
-        <text class="move-showing">显示 {{shownMoveCount}} 个招式</text>
-        <view class="sort-cycle" bindtap="cycleMoveSort">
-          <text>排序 · {{moveSortLabel}}</text>
-          <text class="sort-icon">↻</text>
+    <view class="list">
+      <view wx:for="{{moves}}" wx:key="key" class="mv">
+        <view class="mv-top">
+          <text class="mv-name">{{item.name}}</text>
+          <view class="tag" style="color:{{item.typeColor}};background:{{item.typeBg}};">{{item.typeName}}</view>
+          <text class="tag-plain">{{item.catName}}</text>
+          <text wx:if="{{item.priorityText}}" class="mv-prio num">先制 {{item.priorityText}}</text>
         </view>
-      </view>
-
-      <view class="move-list">
-        <view
-          wx:for="{{moves}}"
-          wx:key="key"
-          class="move-card {{expandedMove === item.key ? 'expanded' : ''}}"
-          data-key="{{item.key}}"
-          bindtap="toggleMove"
-        >
-          <view class="move-type-bar" style="background:{{item.typeColor}};"></view>
-          <view class="move-content">
-            <view class="move-line1">
-              <text class="move-name">{{item.name}}</text>
-              <view class="move-type" style="color:{{item.typeColor}};background:{{item.typeBg}};">{{item.typeName}}</view>
-              <view class="move-cat" style="color:{{item.catColor}};background:{{item.catBg}};">{{item.catName}}</view>
-              <text wx:if="{{item.priorityText}}" class="move-prio">先制{{item.priorityText}}</text>
-            </view>
-            <view class="move-line2">
-              <text class="move-stat">威力 <text class="move-num">{{item.powerText}}</text></text>
-              <text class="move-stat">命中 <text class="move-num">{{item.accText}}</text></text>
-              <text class="move-stat">PP <text class="move-num">{{item.pp}}</text></text>
-            </view>
-            <view wx:if="{{expandedMove === item.key}}" class="move-desc">{{item.desc || '暂无招式说明。'}}</view>
-          </view>
-          <view class="move-expand">{{expandedMove === item.key ? '−' : '+'}}</view>
+        <view class="mv-stats">
+          <text class="mv-stat">威力 <text class="num strong">{{item.powerText}}</text></text>
+          <text class="mv-stat">命中 <text class="num strong">{{item.accText}}</text></text>
+          <text class="mv-stat">PP <text class="num strong">{{item.pp}}</text></text>
         </view>
-      </view>
-
-      <view wx:if="{{shownMoveCount === 0}}" class="move-empty">
-        <text>没有匹配的招式</text>
-        <text class="move-empty-sub">试试更换分类或关键词</text>
+        <text wx:if="{{item.desc}}" class="mv-desc clamp-2">{{item.desc}}</text>
       </view>
     </view>
+
+    <empty-state
+      wx:if="{{!moves.length}}"
+      icon="ball"
+      title="这个分类下没有招式"
+      desc="换一个分类看看"
+      actionText="查看全部招式"
+      bind:action="onMoveCatReset"
+    />
   </view>
 
-  <view wx:if="{{activeTab === 'usage'}}" class="tab-body page-pad">
-    <view class="usage-panel">
-      <view class="usage-switch">
+  <!-- 使用率 -->
+  <view wx:if="{{activeTab === 'usage'}}" class="pad">
+    <view class="usage-head">
+      <view class="chip-group">
         <view
-          class="usage-switch-btn {{usageFormat === 'singles' ? 'active' : ''}} {{!usageHasSingles ? 'muted' : ''}}"
-          data-format="singles"
+          wx:for="{{usageFormats}}"
+          wx:key="key"
+          class="chip chip-sm {{usageFormat === item.key ? 'chip-on' : ''}}"
+          data-key="{{item.key}}"
           bindtap="onUsageFormat"
-        >单打</view>
-        <view
-          class="usage-switch-btn {{usageFormat === 'doubles' ? 'active' : ''}} {{!usageHasDoubles ? 'muted' : ''}}"
-          data-format="doubles"
-          bindtap="onUsageFormat"
-        >双打</view>
+          hover-class="press-hover"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <empty-state
+      wx:if="{{usageEmpty}}"
+      icon="ball"
+      title="暂无配置使用率样本"
+      desc="该宝可梦未进入当前环境 TOP50，暂未收录配置统计"
+    />
+
+    <empty-state
+      wx:elif="{{usageFormatEmpty}}"
+      icon="ball"
+      title="该赛制暂无样本"
+      desc="换一个单打 / 双打视角试试"
+    />
+
+    <block wx:else>
+      <view class="card usage-sum">
+        <view class="usage-sum-main">
+          <text class="usage-rank num">{{usageSummary.rankText}}</text>
+          <text class="usage-pct num">{{usageSummary.pctText}}</text>
+        </view>
+        <text class="t-mini">使用率 · {{usageSummary.sourceText}}</text>
+        <text class="t-mini">{{usageSummary.sampleText}}</text>
       </view>
 
-      <view wx:if="{{usageEmpty}}" class="usage-empty">
-        <view class="usage-empty-orb">%</view>
-        <text class="usage-empty-title">暂无配置使用率样本</text>
-        <text class="usage-empty-sub">该宝可梦未进入当前环境 TOP50，暂未收录配置统计</text>
-        <view class="usage-empty-btn press" bindtap="goRankings" hover-class="press-hover">查看使用率 TOP50</view>
-      </view>
-
-      <view wx:elif="{{usageFormatEmpty}}" class="usage-empty">
-        <view class="usage-empty-orb">—</view>
-        <text class="usage-empty-title">暂无{{usageFormatLabel}}样本</text>
-        <text class="usage-empty-sub">该形态在当前环境中没有足够的{{usageFormatLabel}}配置数据</text>
-      </view>
-
-      <block wx:else>
-        <view class="usage-summary">
-          <view class="usage-summary-left">
-            <text class="usage-summary-label">使用率排名</text>
-            <text class="usage-summary-rank">{{usageRankText}}</text>
-            <text class="usage-summary-source">{{usageSourceText}}</text>
-          </view>
-          <view class="usage-summary-right">
-            <text class="usage-summary-pct">{{usagePctText}}</text>
-            <text class="usage-summary-caption">使用率</text>
-            <text class="usage-summary-sample">{{usageSampleText}}</text>
-          </view>
+      <view wx:for="{{usageSections}}" wx:key="key" class="card block">
+        <view class="block-head">
+          <text class="t-section">{{item.title}}</text>
+          <text class="t-mini">{{item.note}}</text>
         </view>
 
-        <view class="usage-section">
-          <view class="usage-head">
-            <text class="usage-title">特性使用率</text>
-            <text class="usage-note">全部</text>
-          </view>
-          <view class="usage-row" wx:for="{{usageAbilities}}" wx:key="name">
-            <view class="usage-row-line">
-              <text class="usage-name">{{item.name}}</text>
-              <text class="usage-pct">{{item.pctText}}</text>
+        <block wx:if="{{item.kind === 'bar'}}">
+          <view wx:for="{{item.items}}" wx:for-item="row" wx:key="name" class="ubar">
+            <view class="ubar-top">
+              <text class="ubar-name ellipsis">{{row.name}}</text>
+              <view wx:if="{{row.typeName}}" class="tag" style="color:{{row.typeColor}};background:{{row.typeBg}};">{{row.typeName}}</view>
+              <text class="ubar-pct num">{{row.pctText}}</text>
             </view>
-            <view class="usage-track">
-              <view class="usage-fill" style="width:{{item.width}};"></view>
+            <view class="bar">
+              <view class="bar-fill" style="width:{{row.width}};"></view>
             </view>
           </view>
-        </view>
+        </block>
 
-        <view class="usage-section">
-          <view class="usage-head">
-            <text class="usage-title">性格使用率</text>
-            <text class="usage-note">TOP5</text>
-          </view>
-          <view class="usage-row" wx:for="{{usageNatures}}" wx:key="name">
-            <view class="usage-row-line">
-              <text class="usage-name">{{item.name}}</text>
-              <text class="usage-pct">{{item.pctText}}</text>
+        <block wx:else>
+          <view wx:for="{{item.items}}" wx:for-item="row" wx:key="key" class="spread">
+            <view class="ubar-top">
+              <text class="ubar-name">{{row.name}}</text>
+              <text class="ubar-pct num">{{row.pctText}}</text>
             </view>
-            <view class="usage-track">
-              <view class="usage-fill" style="width:{{item.width}};"></view>
-            </view>
-          </view>
-        </view>
-
-        <view class="usage-section">
-          <view class="usage-head">
-            <text class="usage-title">道具使用率</text>
-            <text class="usage-note">TOP5</text>
-          </view>
-          <view class="usage-row" wx:for="{{usageItems}}" wx:key="name">
-            <view class="usage-row-line">
-              <text class="usage-name">{{item.name}}</text>
-              <text class="usage-pct">{{item.pctText}}</text>
-            </view>
-            <view class="usage-track">
-              <view class="usage-fill" style="width:{{item.width}};"></view>
-            </view>
-          </view>
-        </view>
-
-        <view class="usage-section">
-          <view class="usage-head">
-            <text class="usage-title">努力值分配</text>
-            <text class="usage-note">TOP5</text>
-          </view>
-          <view class="spread-card" wx:for="{{usageSpreads}}" wx:key="key">
-            <view class="spread-head">
-              <text class="spread-nature">{{item.nature}}</text>
-              <text class="usage-pct">{{item.pctText}}</text>
-            </view>
-            <view class="spread-stats">
-              <view class="spread-stat" wx:for="{{item.stats}}" wx:for-item="s" wx:key="key">
-                <text class="spread-label">{{s.label}}</text>
-                <text class="spread-value">{{s.value}}</text>
+            <view class="spread-cells">
+              <view wx:for="{{row.cells}}" wx:for-item="c" wx:key="key" class="spread-cell">
+                <text class="spread-label">{{c.label}}</text>
+                <text class="spread-value num">{{c.value}}</text>
               </view>
             </view>
-            <view class="usage-track">
-              <view class="usage-fill teal" style="width:{{item.width}};"></view>
-            </view>
           </view>
-          <text class="usage-hint">顺序：HP / 攻击 / 防御 / 特攻 / 特防 / 速度（0–32 点）</text>
-        </view>
-
-        <view class="usage-section">
-          <view class="usage-head">
-            <text class="usage-title">招式搭配</text>
-            <text class="usage-note">TOP10</text>
-          </view>
-          <view class="usage-move" wx:for="{{usageMoves}}" wx:key="name">
-            <view class="usage-move-line">
-              <text class="usage-move-name">{{item.name}}</text>
-              <view class="usage-move-type" style="color:{{item.typeColor}};background:{{item.typeBg}};">{{item.typeName}}</view>
-              <text class="usage-pct">{{item.pctText}}</text>
-            </view>
-            <view class="usage-track">
-              <view class="usage-fill gold" style="width:{{item.width}};"></view>
-            </view>
-          </view>
-          <text class="usage-hint">招式使用率为单招携带率，可叠加，不代表固定四招组合。</text>
-        </view>
-
-        <view class="usage-footnote">数据：{{usageSourceText}} · {{usageSampleText}}</view>
-      </block>
-    </view>
-  </view>
-
-  <view wx:if="{{forms.length}}" class="forms-section page-pad">
-    <view class="panel-head">
-      <text class="section-title">同族形态</text>
-      <text class="panel-note">还有 {{forms.length}} 个</text>
-    </view>
-    <scroll-view class="forms-rail" scroll-x enhanced show-scrollbar="{{false}}">
-      <view class="forms-inner">
-        <view
-          wx:for="{{forms}}"
-          wx:key="key"
-          class="form-card press"
-          data-key="{{item.key}}"
-          bindtap="openForm"
-          hover-class="press-hover"
-        >
-          <image class="form-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
-          <text class="form-name">{{item.name}}</text>
-          <view class="form-pill">{{item.formLabel}}</view>
-        </view>
+          <text class="t-mini">顺序：HP / 攻击 / 防御 / 特攻 / 特防 / 速度（0–32 SP）</text>
+        </block>
       </view>
-    </scroll-view>
+
+      <view class="foot-note">使用率为样本统计，不等同于强度排名</view>
+    </block>
   </view>
 
-  <view class="detail-note">
-    <text>数据基于《宝可梦冠军》当前可用配置</text>
-    <text class="detail-note-dot">·</text>
-    <text>更新 2026.11</text>
+  <view class="dock-space"></view>
+</view>
+
+<view wx:if="{{mon}}" class="dock">
+  <view class="dock-inner">
+    <view class="dock-fav {{fav ? 'on' : ''}}" bindtap="toggleFav" hover-class="press-hover">
+      {{fav ? '★' : '☆'}}
+    </view>
+    <view class="btn btn-primary grow" bindtap="openTeams" hover-class="press-hover">加入队伍</view>
   </view>
 </view>
+
+<sheet show="{{sheet}}" title="加入队伍" bind:close="closeSheet">
+  <view
+    wx:for="{{teams}}"
+    wx:key="id"
+    class="sheet-row"
+    data-id="{{item.id}}"
+    bindtap="pickTeam"
+    hover-class="press-hover"
+  >
+    <view class="grow">
+      <text class="sheet-row-name ellipsis">{{item.name}}</text>
+      <text class="t-mini">{{item.count}} / 6 只{{item.has ? ' · 已有' : ''}}</text>
+    </view>
+    <text class="sheet-row-state {{item.full || item.has ? 'off' : ''}}">{{item.full ? '已满' : item.has ? '已有' : '加入'}}</text>
+  </view>
+
+  <view wx:if="{{!teams.length}}" class="t-sub sheet-empty">还没有队伍，先创建一支吧</view>
+
+  <view class="sheet-gap"></view>
+  <view class="btn btn-ghost" bindtap="createAndAdd" hover-class="press-hover">新建队伍并加入</view>
+  <view class="sheet-gap"></view>
+</sheet>

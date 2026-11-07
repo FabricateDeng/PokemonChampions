@@ -1,8 +1,0 @@
-{
-  "usingComponents": {
-    "nav-bar": "/components/nav-bar/nav-bar"
-  },
-  "navigationStyle": "custom",
-  "backgroundColor": "#070B14",
-  "backgroundTextStyle": "dark"
-}

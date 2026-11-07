@@ -1,0 +1,87 @@
+/* 队伍列表 */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx 0 20rpx;
+}
+
+.head-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.teams {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 24rpx;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+}
+
+.team-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.team-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 0;
+}
+
+.team-count {
+  font-size: 24rpx;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.team-slots {
+  display: flex;
+  gap: 8rpx;
+}
+
+.team-sprite {
+  flex: 1;
+  height: 72rpx;
+  width: auto;
+  min-width: 0;
+}
+
+.team-slot-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10rpx;
+  border: 1rpx dashed var(--line-strong);
+  color: var(--text-3);
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+.team-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid var(--line);
+}
+
+.team-go {
+  font-size: 24rpx;
+  color: var(--brand);
+}

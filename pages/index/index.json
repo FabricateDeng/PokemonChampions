@@ -1,9 +1,12 @@
 {
   "usingComponents": {
-    "nav-bar": "/components/nav-bar/nav-bar"
+    "nav-bar": "/components/nav-bar/nav-bar",
+    "segmented": "/components/segmented/segmented",
+    "sheet": "/components/sheet/sheet",
+    "empty-state": "/components/empty-state/empty-state"
   },
   "navigationStyle": "custom",
-  "backgroundColor": "#070B14",
-  "backgroundTextStyle": "dark",
+  "backgroundColor": "#0a0e14",
+  "backgroundTextStyle": "light",
   "enablePullDownRefresh": false
 }

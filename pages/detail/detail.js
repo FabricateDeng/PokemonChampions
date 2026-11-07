@@ -1,531 +1,430 @@
-const { POKEMON, MOVES, ABILITIES, META } = require('../../data/pokedex.js')
+const { META, MOVES, ABILITIES } = require('../../data/pokedex.js')
+const monUtil = require('../../utils/mon.js')
+const ui = require('../../utils/ui.js')
+const fmt = require('../../utils/format.js')
+const favs = require('../../utils/favs.js')
+const routes = require('../../utils/routes.js')
+const store = require('../../utils/team-store.js')
+const system = require('../../utils/system.js')
 const usageService = require('../../utils/usage-service.js')
 const { getDefenseMatchup } = require('../../utils/type-chart.js')
-const {
-  hexToRgba,
-  typeInfo,
-  categoryInfo,
-  powerText,
-  accuracyText,
-  priorityText
-} = require('../../utils/ui.js')
 
-const STAT_META = [
-  { key: 'hp', label: 'HP', color: '#FF6B6B' },
-  { key: 'attack', label: '攻击', color: '#FFA45B' },
-  { key: 'defense', label: '防御', color: '#FFD166' },
-  { key: 'spAttack', label: '特攻', color: '#6FA8FF' },
-  { key: 'spDefense', label: '特防', color: '#59D6A7' },
-  { key: 'speed', label: '速度', color: '#F472C6' }
-]
-
-const CAT_ORDER = { physical: 0, special: 1, status: 2 }
-const SORT_LABEL = { power: '威力', pp: 'PP', name: '名称' }
-const SORT_CYCLE = ['power', 'pp', 'name']
-
-const MOVE_BY_NAME = {}
+// move name -> move key, for the usage section where data only carries names.
+const MOVE_KEY_BY_NAME = {}
 Object.keys(MOVES).forEach((k) => {
-  MOVE_BY_NAME[MOVES[k].name] = { key: k, type: MOVES[k].type }
+  MOVE_KEY_BY_NAME[MOVES[k].name] = k
 })
 
-function compareName(a, b) {
-  return a.name < b.name ? -1 : a.name > b.name ? 1 : 0
-}
+const STAT_LABELS = ['HP', '攻击', '防御', '特攻', '特防', '速度']
+const STAT_MAX = 160
 
-function numberText(n) {
-  if (!n) return '—'
-  if (n >= 10000) return (n / 10000).toFixed(1) + '万'
-  return String(n)
-}
+const TABS = [
+  { key: 'stats', label: '数据' },
+  { key: 'moves', label: '招式' },
+  { key: 'usage', label: '使用率' }
+]
 
-function pctText(n) {
-  const value = Number(n) || 0
-  return (value >= 10 ? value.toFixed(1) : value.toFixed(2)) + '%'
-}
+const MOVE_CATS = [
+  { key: 'all', name: '全部' },
+  { key: 'physical', name: '物理' },
+  { key: 'special', name: '特殊' },
+  { key: 'status', name: '变化' }
+]
 
-const TOTAL_RANK = {}
-POKEMON.slice()
-  .sort((a, b) => b.total - a.total || a.dex - b.dex)
-  .forEach((p, i) => {
-    TOTAL_RANK[p.key] = i + 1
-  })
-
-function tagClass(tag) {
-  if (tag === 'MEGA') return 'mega'
-  if (tag === '地区形态') return 'regional'
-  if (tag === '特殊形态') return 'special'
-  if (tag === '对战形态') return 'battle'
-  return ''
-}
+const MATCHUP_ROWS = [
+  { key: 'x4', mult: '×4', label: '四倍弱点', tone: 'weak' },
+  { key: 'x2', mult: '×2', label: '弱点', tone: 'weak' },
+  { key: 'x05', mult: '×0.5', label: '抵抗', tone: 'resist' },
+  { key: 'x025', mult: '×0.25', label: '强抵抗', tone: 'resist' },
+  { key: 'x0', mult: '×0', label: '免疫', tone: 'immune' }
+]
 
 Page({
   data: {
-    meta: META,
-    mon: null,
-    navTitle: '宝可梦详情',
-    fav: false,
-    navTotalHeight: 64,
-    activeTab: 'stats',
-    totalRank: 0,
-    stats: [],
-    matchupGroups: [],
-    abilities: [],
-    moves: [],
-    moveCats: [],
-    moveCat: 'all',
-    moveQuery: '',
-    moveSort: 'power',
-    moveSortLabel: SORT_LABEL.power,
-    shownMoveCount: 0,
-    expandedMove: '',
-    forms: [],
     notFound: false,
-    usageMeta: {},
-    usageFormat: 'doubles',
-    usageFormatLabel: '双打',
-    usageHasSingles: false,
-    usageHasDoubles: false,
+    navTotalHeight: 64,
+    mon: null,
+    fav: false,
+
+    tabs: TABS,
+    activeTab: 'stats',
+
+    stats: [],
+    totalRank: 0,
+    totalCount: META.count,
+
+    matchups: [],
+
+    abilities: [],
+
+    moveCats: MOVE_CATS,
+    moveCatIndex: 0,
+    moves: [],
+    moveCount: 0,
+
+    sheet: false,
+    teams: [],
+
+    usageFormat: 'singles',
+    usageFormats: [],
     usageEmpty: false,
     usageFormatEmpty: false,
-    usageRankText: '',
-    usagePctText: '',
-    usageSourceText: '',
-    usageSampleText: '',
-    usageWinRateText: '',
-    usageAbilities: [],
-    usageItems: [],
-    usageNatures: [],
-    usageSpreads: [],
-    usageMoves: []
+    usageSummary: null,
+    usageSections: []
   },
 
   onLoad(options) {
-    const app = getApp()
-    const g = (app && app.globalData) || {}
-    const navTotalHeight = g.navTotalHeight || 64
+    const metrics = system.getMetrics()
+    this.raw = null
+    this.usageRaw = null
 
-    let key = options && options.key ? options.key : ''
+    let key = (options && options.key) || ''
     try {
       key = decodeURIComponent(key)
     } catch (e) {
-      // keep raw key
+      // keep the raw value
     }
 
-    const raw = POKEMON.find((p) => p.key === key)
-    if (!raw) {
-      this.setData({ notFound: true, navTotalHeight })
-      wx.showToast({ title: '未找到该宝可梦', icon: 'none' })
+    const found = monUtil.byKey()[key]
+    if (!found) {
+      this.setData({ notFound: true, navTotalHeight: metrics.navTotalHeight })
       return
     }
 
-    const favs = wx.getStorageSync('champion_favs') || []
-    this.favSet = new Set(Array.isArray(favs) ? favs : [])
-    this.raw = raw
-    this.allMoves = this.buildMoves(raw)
-    this.moveState = { cat: 'all', query: '', sort: 'power' }
+    this.raw = found
+    this.favSet = favs.asSet()
+    this.movesAll = found.moves.map((k) => ui.moveView(k)).filter(Boolean)
 
-    const monView = this.buildMon(raw)
-    const stats = STAT_META.map((s, i) => {
-      const value = raw.stats[i]
+    const stats = found.stats.map((value, i) => ({
+      key: 'stat' + i,
+      label: STAT_LABELS[i],
+      value,
+      percent: Math.min(100, Math.round((value / STAT_MAX) * 100)) + '%'
+    }))
+
+    const matchup = getDefenseMatchup(found.types)
+    const matchups = MATCHUP_ROWS.map((row) => {
+      const types = matchup[row.key] || []
+      if (!types.length) return null
       return {
-        key: s.key,
-        label: s.label,
-        value,
-        color: s.color,
-        percent: Math.min(100, (value / 180) * 100).toFixed(1) + '%'
+        key: row.key,
+        mult: row.mult,
+        label: row.label,
+        tone: row.tone,
+        types: types.map(ui.typeInfo)
       }
-    })
+    }).filter(Boolean)
 
-    const matchup = getDefenseMatchup(raw.types)
-    const groups = []
-    const addGroup = (label, mult, tone, list) => {
-      if (list && list.length) {
-        groups.push({
-          key: label,
-          label,
-          mult,
-          tone,
-          types: list.map((k) => typeInfo(k))
-        })
-      }
-    }
-    addGroup('四倍弱点', '×4', 'weak', matchup.x4)
-    addGroup('弱点', '×2', 'weak', matchup.x2)
-    addGroup('抵抗', '×0.5', 'resist', matchup.x05)
-    addGroup('强抵抗', '×0.25', 'resist', matchup.x025)
-    addGroup('免疫', '×0', 'immune', matchup.x0)
+    const abilities = found.abilities.map((k, i) => ({
+      key: k,
+      index: String(i + 1).padStart(2, '0'),
+      name: (ABILITIES[k] || {}).name || k,
+      desc: (ABILITIES[k] || {}).desc || '暂无说明'
+    }))
 
-    const abilities = raw.abilities.map((k, i) => {
-      const ab = ABILITIES[k] || { name: k, desc: '' }
-      return {
-        key: k,
-        index: String(i + 1).padStart(2, '0'),
-        name: ab.name,
-        desc: ab.desc || '暂无说明'
-      }
-    })
+    const tabs = TABS.map((t) => (t.key === 'moves' ? { ...t, badge: String(found.count.moves) } : t))
 
-    const forms = POKEMON
-      .filter((p) => p.dex === raw.dex && p.key !== raw.key)
-      .sort((a, b) => a.order - b.order || a.id - b.id)
-      .map((p) => ({
-        key: p.key,
-        name: p.name,
-        sprite: p.sprite,
-        formLabel: p.formLabel || '基础',
-        typesInfo: p.types.map((t) => typeInfo(t))
-      }))
-
-    const moveCats = [
-      { key: 'all', name: '全部', count: this.allMoves.length },
-      { key: 'physical', name: '物理', count: this.allMoves.filter((m) => m.cat === 'physical').length },
-      { key: 'special', name: '特殊', count: this.allMoves.filter((m) => m.cat === 'special').length },
-      { key: 'status', name: '变化', count: this.allMoves.filter((m) => m.cat === 'status').length }
-    ]
-
-    this.usageData = usageService.getUsage()
-    this.usageRaw = this.usageData.USAGE[raw.key] || null
-    const usageHasSingles = !!(this.usageRaw && this.usageRaw.s)
-    const usageHasDoubles = !!(this.usageRaw && this.usageRaw.d)
-    let usageFormat = usageHasDoubles ? 'doubles' : 'singles'
-    if (options && options.format === 'singles') usageFormat = 'singles'
-    if (options && options.format === 'doubles') usageFormat = 'doubles'
-
-    const activeTab = options && options.tab === 'usage' ? 'usage' : 'stats'
     this.setData({
-      navTotalHeight,
-      navTitle: raw.name,
-      mon: monView,
-      fav: this.favSet.has(raw.key),
-      totalRank: TOTAL_RANK[raw.key] || 0,
+      navTotalHeight: metrics.navTotalHeight,
+      mon: {
+        key: found.key,
+        name: found.name,
+        dexLabel: found.dexLabel,
+        dex: found.dex,
+        gen: found.gen,
+        total: found.total,
+        reg: found.reg,
+        formLabel: found.formLabel,
+        formShort: found.formShort,
+        sprite: found.sprite,
+        typesInfo: found.typesInfo,
+        count: found.count,
+        glow: ui.hexToRgba(found.typesInfo[0].color, 0.16)
+      },
+      fav: this.favSet.has(found.key),
+      tabs,
       stats,
-      matchupGroups: groups,
+      totalRank: ui.totalRank(found.key),
+      matchups,
       abilities,
-      moveCats,
-      moves: this.allMoves,
-      shownMoveCount: this.allMoves.length,
-      forms,
-      activeTab,
-      usageFormat,
-      usageFormatLabel: usageFormat === 'singles' ? '单打' : '双打',
-      usageHasSingles,
-      usageHasDoubles
+      moves: this.movesAll,
+      moveCount: this.movesAll.length
     })
 
-    this.usageUnsubscribe = usageService.subscribe((data) => {
-      this.usageData = data
-      this.usageRaw = data.USAGE[raw.key] || null
-      if (this.data.activeTab === 'usage') {
-        this.buildUsageView(this.data.usageFormat)
-      } else {
-        this.setData({
-          usageMeta: data.META,
-          usageHasSingles: !!(this.usageRaw && this.usageRaw.s),
-          usageHasDoubles: !!(this.usageRaw && this.usageRaw.d)
-        })
-      }
-    })
-    usageService.refresh()
+    const initialTab = options && options.tab === 'usage' ? 'usage' : 'stats'
+    if (initialTab !== 'stats') this.setData({ activeTab: initialTab })
 
-    if (activeTab === 'usage') {
-      this.buildUsageView(usageFormat)
-    }
+    this.loadUsage(options && options.format)
   },
 
   onShow() {
     if (!this.raw) return
-    const favs = wx.getStorageSync('champion_favs') || []
-    this.favSet = new Set(Array.isArray(favs) ? favs : [])
+    this.favSet = favs.asSet()
     const fav = this.favSet.has(this.raw.key)
     if (fav !== this.data.fav) this.setData({ fav })
+    if (this.data.sheet) this.refreshTeams()
   },
 
   onUnload() {
-    if (this.searchTimer) clearTimeout(this.searchTimer)
-    if (this.usageUnsubscribe) this.usageUnsubscribe()
+    if (this.unsubscribe) this.unsubscribe()
   },
 
-  buildMon(raw) {
-    const typesInfo = raw.types.map((t) => typeInfo(t))
-    const primary = typesInfo[0] ? typesInfo[0].color : '#FFD84D'
-    return {
-      key: raw.key,
-      id: raw.id,
-      dex: raw.dex,
-      dexLabel: '#' + String(raw.dex).padStart(3, '0'),
-      name: raw.name,
-      gen: raw.gen,
-      types: raw.types,
-      typesInfo,
-      stats: raw.stats,
-      total: raw.total,
-      reg: raw.reg,
-      form: raw.form,
-      formLabel: raw.formLabel,
-      tags: raw.tags || [],
-      tagItems: (raw.tags || []).map((t) => ({ name: t, cls: tagClass(t) })),
-      sprite: raw.sprite,
-      abilityCount: raw.abilities.length,
-      moveCount: raw.moves.length,
-      heroBg: `linear-gradient(155deg, ${hexToRgba(primary, 0.34)} 0%, rgba(15, 22, 36, 0.97) 56%, #0c1320 100%)`,
-      ringColor: hexToRgba(primary, 0.32),
-      glowColor: hexToRgba(primary, 0.4)
-    }
+  /* ------------------------------------------------------------ 使用率 */
+
+  loadUsage(preferred) {
+    const data = usageService.getUsage()
+    this.applyUsage(data, preferred)
+    this.unsubscribe = usageService.subscribe((next) => this.applyUsage(next, this.data.usageFormat))
+    usageService.refresh()
   },
 
-  buildMoves(raw) {
-    return raw.moves
-      .map((k) => {
-        const m = MOVES[k]
-        if (!m) return null
-        const ti = typeInfo(m.type)
-        const ci = categoryInfo(m.cat)
-        return {
-          key: k,
-          name: m.name,
-          type: m.type,
-          typeName: ti.name,
-          typeColor: ti.color,
-          typeBg: ti.bg,
-          cat: m.cat,
-          catName: ci.name,
-          catColor: ci.color,
-          catBg: ci.bg,
-          power: m.power,
-          powerText: powerText(m.power),
-          accText: accuracyText(m.acc, m.cat),
-          pp: m.pp,
-          priority: m.priority || 0,
-          priorityText: priorityText(m.priority),
-          desc: m.desc || '',
-          searchText: `${m.name} ${ti.name} ${ci.name} ${m.desc || ''}`.toLowerCase()
-        }
-      })
-      .filter(Boolean)
+  applyUsage(data, preferred) {
+    if (!data || !this.raw) return
+    this.usageData = data
+    this.usageRaw = (data.USAGE && data.USAGE[this.raw.key]) || null
+
+    const hasSingles = !!(this.usageRaw && this.usageRaw.s)
+    const hasDoubles = !!(this.usageRaw && this.usageRaw.d)
+    let format = preferred === 'doubles' || preferred === 'singles' ? preferred : ''
+    if (!format) format = hasSingles ? 'singles' : hasDoubles ? 'doubles' : 'singles'
+
+    this.setData({
+      usageFormats: [
+        { key: 'singles', label: '单打' },
+        { key: 'doubles', label: '双打' }
+      ]
+    })
+    this.buildUsage(format)
   },
 
-  buildUsageView(format) {
+  buildUsage(format) {
     const u = this.usageRaw
-    const hasSingles = !!(u && u.s)
-    const hasDoubles = !!(u && u.d)
-    const empty = {
-      usageAbilities: [],
-      usageItems: [],
-      usageNatures: [],
-      usageSpreads: [],
-      usageMoves: []
-    }
+    const isSingles = format === 'singles'
 
     if (!u) {
       this.setData({
         usageFormat: format,
-        usageFormatLabel: format === 'singles' ? '单打' : '双打',
-        usageHasSingles: false,
-        usageHasDoubles: false,
         usageEmpty: true,
-        usageFormatEmpty: true,
-        ...empty
+        usageFormatEmpty: false,
+        usageSummary: null,
+        usageSections: []
       })
       return
     }
 
-    const block = format === 'singles' ? u.s : u.d
+    const block = isSingles ? u.s : u.d
     if (!block) {
       this.setData({
         usageFormat: format,
-        usageFormatLabel: format === 'singles' ? '单打' : '双打',
-        usageHasSingles: hasSingles,
-        usageHasDoubles: hasDoubles,
         usageEmpty: false,
         usageFormatEmpty: true,
-        ...empty
+        usageSummary: null,
+        usageSections: []
       })
       return
     }
 
-    const pairs = (list, limit) => (list || []).slice(0, limit).map(([name, pct]) => ({
+    const meta = (this.usageData && this.usageData.META) || {}
+    const bar = (name, pct) => ({
       name,
-      pct,
-      pctText: pctText(pct),
-      width: Math.min(100, Math.max(2, pct)) + '%'
-    }))
-
-    const moves = (block.moves || []).slice(0, 10).map(([name, pct]) => {
-      const found = MOVE_BY_NAME[name]
-      const ti = found
-        ? typeInfo(found.type)
-        : { name: '—', color: '#8A96AB', bg: 'rgba(138,150,171,0.12)' }
-      return {
-        name,
-        pctText: pctText(pct),
-        width: Math.min(100, Math.max(2, pct)) + '%',
-        typeName: ti.name,
-        typeColor: ti.color,
-        typeBg: ti.bg
-      }
+      pctText: fmt.pctText(pct),
+      width: Math.max(4, Math.min(100, pct)) + '%'
     })
 
-    const spreads = (block.spreads || []).slice(0, 5).map((sp, index) => ({
-      key: 's' + index,
-      nature: sp.n || '—',
-      valuesText: sp.v.join(' / '),
-      pctText: pctText(sp.p),
-      width: Math.min(100, Math.max(2, sp.p)) + '%',
-      stats: STAT_META.map((meta, i) => ({
-        key: meta.key,
-        label: meta.label,
-        value: sp.v[i]
-      }))
-    }))
+    const sections = []
+    if (block.abilities && block.abilities.length) {
+      sections.push({
+        key: 'abilities',
+        title: '特性',
+        note: '全部',
+        kind: 'bar',
+        items: block.abilities.map((row) => bar(row[0], row[1]))
+      })
+    }
+    if (block.items && block.items.length) {
+      sections.push({
+        key: 'items',
+        title: '道具',
+        note: 'TOP5',
+        kind: 'bar',
+        items: block.items.slice(0, 5).map((row) => bar(row[0], row[1]))
+      })
+    }
+    if (block.natures && block.natures.length) {
+      sections.push({
+        key: 'natures',
+        title: '性格',
+        note: 'TOP5',
+        kind: 'bar',
+        items: block.natures.slice(0, 5).map((row) => bar(row[0], row[1]))
+      })
+    }
+    if (block.spreads && block.spreads.length) {
+      sections.push({
+        key: 'spreads',
+        title: '努力值分配',
+        note: 'TOP5',
+        kind: 'spread',
+        items: block.spreads.slice(0, 5).map((sp, i) => ({
+          key: 'sp' + i,
+          name: sp.n || '—',
+          pctText: fmt.pctText(sp.p),
+          width: Math.max(4, Math.min(100, sp.p)) + '%',
+          cells: STAT_LABELS.map((label, idx) => ({ key: label, label, value: sp.v[idx] }))
+        }))
+      })
+    }
+    if (block.moves && block.moves.length) {
+      sections.push({
+        key: 'moves',
+        title: '招式携带率',
+        note: 'TOP10',
+        kind: 'bar',
+        items: block.moves.slice(0, 10).map((row) => {
+          const view = ui.moveView(MOVE_KEY_BY_NAME[row[0]])
+          return {
+            ...bar(row[0], row[1]),
+            typeName: view ? view.typeName : '',
+            typeColor: view ? view.typeColor : '',
+            typeBg: view ? view.typeBg : ''
+          }
+        })
+      })
+    }
 
-    const isSingles = format === 'singles'
-    const usageMeta = (this.usageData && this.usageData.META) || {}
     const sourceText = isSingles
-      ? `${usageMeta.singles.source} · ${usageMeta.singles.month} · ${usageMeta.singles.cutoff} 分位`
-      : `${usageMeta.doubles.source} · ${usageMeta.doubles.regulation} · ${usageMeta.doubles.from.slice(5).replace('-', '.')}–${usageMeta.doubles.to.slice(5).replace('-', '.')}`
+      ? `${meta.singles.source} · ${meta.singles.month} · ${meta.singles.cutoff} 分位`
+      : `${meta.doubles.source} · ${meta.doubles.regulation} · ${meta.doubles.from.slice(5).replace('-', '.')}–${meta.doubles.to.slice(5).replace('-', '.')}`
     const sampleText = isSingles
-      ? `样本 ${numberText(block.raw)}`
-      : `队伍 ${numberText(block.teams)} · 胜率 ${(block.winRate || 0).toFixed(1)}%`
+      ? `样本 ${fmt.numberText(block.raw)}`
+      : `队伍 ${fmt.numberText(block.teams)} · 胜率 ${(block.winRate || 0).toFixed(1)}%`
 
     this.setData({
       usageFormat: format,
-      usageFormatLabel: isSingles ? '单打' : '双打',
-      usageHasSingles: hasSingles,
-      usageHasDoubles: hasDoubles,
       usageEmpty: false,
       usageFormatEmpty: false,
-      usageRankText: block.rank ? '#' + block.rank : '未上榜',
-      usagePctText: block.usage ? pctText(block.usage) : '—',
-      usageSourceText: sourceText,
-      usageSampleText: sampleText,
-      usageWinRateText: isSingles ? '' : (block.winRate || 0).toFixed(1) + '%',
-      usageAbilities: pairs(block.abilities),
-      usageItems: pairs(block.items, 5),
-      usageNatures: pairs(block.natures, 5),
-      usageSpreads: spreads,
-      usageMoves: moves
+      usageSummary: {
+        rankText: block.rank ? '#' + block.rank : '未上榜',
+        pctText: block.usage ? fmt.pctText(block.usage) : '—',
+        sourceText,
+        sampleText
+      },
+      usageSections: sections
     })
   },
 
   onUsageFormat(e) {
-    const format = e.currentTarget.dataset.format
+    const format = e.currentTarget.dataset.key
     if (!format || format === this.data.usageFormat) return
-    this.buildUsageView(format)
+    this.buildUsage(format)
   },
+
+  /* ------------------------------------------------------------ 页内视图 */
 
   onTab(e) {
-    const tab = e.currentTarget.dataset.tab
+    const tab = e.detail.key
     if (!tab || tab === this.data.activeTab) return
     this.setData({ activeTab: tab })
-    if (tab === 'usage') {
-      this.buildUsageView(this.data.usageFormat)
-    }
-  },
-
-  applyMoveFilters() {
-    const state = this.moveState
-    const terms = (state.query || '').trim().toLowerCase().split(/\s+/).filter(Boolean)
-    let list = this.allMoves.filter((m) => {
-      if (state.cat !== 'all' && m.cat !== state.cat) return false
-      if (terms.length) {
-        for (let i = 0; i < terms.length; i += 1) {
-          if (m.searchText.indexOf(terms[i]) === -1) return false
-        }
-      }
-      return true
-    })
-
-    if (state.sort === 'pp') {
-      list.sort((a, b) => b.pp - a.pp || compareName(a, b))
-    } else if (state.sort === 'name') {
-      list.sort(compareName)
-    } else {
-      list.sort((a, b) => (CAT_ORDER[a.cat] - CAT_ORDER[b.cat]) || ((b.power || -1) - (a.power || -1)) || compareName(a, b))
-    }
-
-    this.setData({
-      moves: list,
-      shownMoveCount: list.length,
-      moveCat: state.cat,
-      moveQuery: state.query,
-      moveSort: state.sort,
-      moveSortLabel: SORT_LABEL[state.sort]
-    })
-  },
-
-  onMoveSearch(e) {
-    this.moveState.query = e.detail.value || ''
-    if (this.searchTimer) clearTimeout(this.searchTimer)
-    this.searchTimer = setTimeout(() => {
-      this.applyMoveFilters()
-    }, 120)
-  },
-
-  clearMoveSearch() {
-    if (this.searchTimer) clearTimeout(this.searchTimer)
-    this.moveState.query = ''
-    this.applyMoveFilters()
+    wx.pageScrollTo({ scrollTop: 0, duration: 0 })
   },
 
   onMoveCat(e) {
-    const cat = e.currentTarget.dataset.cat
-    if (!cat || cat === this.moveState.cat) return
-    this.moveState.cat = cat
-    this.applyMoveFilters()
+    const index = Number(e.currentTarget.dataset.index)
+    if (index === this.data.moveCatIndex) return
+    const cat = MOVE_CATS[index].key
+    const moves = cat === 'all' ? this.movesAll : this.movesAll.filter((m) => m.cat === cat)
+    this.setData({ moveCatIndex: index, moves, moveCount: moves.length })
   },
 
-  cycleMoveSort() {
-    const idx = SORT_CYCLE.indexOf(this.moveState.sort)
-    this.moveState.sort = SORT_CYCLE[(idx + 1) % SORT_CYCLE.length]
-    this.applyMoveFilters()
+  onMoveCatReset() {
+    this.setData({
+      moveCatIndex: 0,
+      moves: this.movesAll,
+      moveCount: this.movesAll.length
+    })
   },
 
-  toggleMove(e) {
-    const key = e.currentTarget.dataset.key
-    if (!key) return
-    this.setData({ expandedMove: this.data.expandedMove === key ? '' : key })
-  },
+  /* ------------------------------------------------------------ 收藏 / 队伍 */
 
   toggleFav() {
     if (!this.raw) return
-    const key = this.raw.key
+    const next = favs.asSet()
     let added = false
-    if (this.favSet.has(key)) {
-      this.favSet.delete(key)
-    } else {
-      this.favSet.add(key)
+    if (next.has(this.raw.key)) next.delete(this.raw.key)
+    else {
+      next.add(this.raw.key)
       added = true
     }
-    wx.setStorageSync('champion_favs', Array.from(this.favSet))
+    this.favSet = favs.set(Array.from(next))
     this.setData({ fav: added })
     wx.showToast({ title: added ? '已收藏' : '已取消收藏', icon: 'none', duration: 700 })
   },
 
-  openForm(e) {
-    const key = e.currentTarget.dataset.key
-    if (!key || !this.raw || key === this.raw.key) return
-    wx.redirectTo({ url: '/pages/detail/detail?key=' + encodeURIComponent(key) })
+  openTeams() {
+    this.refreshTeams()
+    this.setData({ sheet: true })
+  },
+
+  closeSheet() {
+    this.setData({ sheet: false })
+  },
+
+  refreshTeams() {
+    const teams = store.listTeams().map((t) => {
+      const count = t.members.filter(Boolean).length
+      return {
+        id: t.id,
+        name: t.name,
+        count,
+        full: count >= 6,
+        has: t.members.some((m) => m && m.key === this.raw.key)
+      }
+    })
+    this.setData({ teams })
+  },
+
+  pickTeam(e) {
+    const id = e.currentTarget.dataset.id
+    if (!id) return
+    this.addToTeam(id)
+  },
+
+  createAndAdd() {
+    const team = store.createTeam()
+    this.addToTeam(team.id)
+  },
+
+  addToTeam(teamId) {
+    const picked = store.getTeam(teamId)
+    if (!picked || !this.raw) return
+
+    if (picked.members.some((m) => m && m.key === this.raw.key)) {
+      wx.showToast({ title: `「${picked.name}」已有这只宝可梦`, icon: 'none' })
+      return
+    }
+    const slot = picked.members.findIndex((m) => !m)
+    if (slot < 0) {
+      wx.showToast({ title: '这支队伍已满 6 只', icon: 'none' })
+      return
+    }
+    store.setMember(teamId, slot, store.defaultMember(this.raw))
+    this.setData({ sheet: false })
+    wx.showToast({ title: `已加入「${picked.name}」第 ${slot + 1} 位`, icon: 'none', duration: 1200 })
   },
 
   goHome() {
-    wx.reLaunch({ url: '/pages/index/index' })
-  },
-
-  goRankings() {
-    wx.navigateTo({ url: '/pages/rankings/rankings' })
+    wx.reLaunch({ url: routes.index })
   },
 
   onShareAppMessage() {
-    const name = this.data.mon ? this.data.mon.name : '宝可梦冠军'
     return {
-      title: `${name}｜种族值、特性与使用率`,
-      path: this.raw ? '/pages/detail/detail?key=' + encodeURIComponent(this.raw.key) : '/pages/index/index',
+      title: `${this.raw ? this.raw.name : '宝可梦'}｜种族值 · 特性 · 使用率`,
+      path: this.raw ? routes.detail(this.raw.key) : routes.index,
       imageUrl: '/assets/share.png'
     }
   },
 
   onShareTimeline() {
-    const name = this.data.mon ? this.data.mon.name : '宝可梦冠军'
-    return { title: `${name}｜宝可梦冠军图鉴` }
+    return { title: `${this.raw ? this.raw.name : '宝可梦'}｜冠军图鉴` }
   }
 })

@@ -3,31 +3,55 @@
     "pages/index/index",
     "pages/detail/detail",
     "pages/rankings/rankings",
-    "pages/moves/moves",
-    "pages/about/about"
+    "pages/teams/teams",
+    "pages/team/team",
+    "pages/picker/picker",
+    "pages/member/member",
+    "pages/calc/calc",
+    "pages/profile/profile"
   ],
   "window": {
     "navigationStyle": "custom",
-    "backgroundColor": "#070B14",
-    "backgroundTextStyle": "dark",
+    "backgroundColor": "#0a0e14",
+    "backgroundColorTop": "#0a0e14",
+    "backgroundColorBottom": "#0a0e14",
+    "backgroundTextStyle": "light",
     "navigationBarTextStyle": "white",
-    "navigationBarBackgroundColor": "#070B14"
+    "navigationBarBackgroundColor": "#0a0e14"
   },
-  "subpackages": [
-    {
-      "root": "packages/tools",
-      "name": "tools",
-      "pages": [
-        "pages/teams/teams",
-        "pages/team/team",
-        "pages/picker/picker",
-        "pages/member/member",
-        "pages/calc/calc"
-      ]
-    }
-  ],
+  "tabBar": {
+    "color": "#6a7585",
+    "selectedColor": "#f2c455",
+    "backgroundColor": "#0c121b",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "图鉴",
+        "iconPath": "assets/tabbar/dex.png",
+        "selectedIconPath": "assets/tabbar/dex-on.png"
+      },
+      {
+        "pagePath": "pages/rankings/rankings",
+        "text": "榜单",
+        "iconPath": "assets/tabbar/rank.png",
+        "selectedIconPath": "assets/tabbar/rank-on.png"
+      },
+      {
+        "pagePath": "pages/teams/teams",
+        "text": "队伍",
+        "iconPath": "assets/tabbar/team.png",
+        "selectedIconPath": "assets/tabbar/team-on.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/tabbar/profile.png",
+        "selectedIconPath": "assets/tabbar/profile-on.png"
+      }
+    ]
+  },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
 }
-

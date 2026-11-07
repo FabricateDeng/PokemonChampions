@@ -1,0 +1,114 @@
+.es {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 40rpx 64rpx;
+}
+
+.es-icon {
+  position: relative;
+  width: 96rpx;
+  height: 96rpx;
+  opacity: 0.55;
+}
+
+/* 圆形 + 手柄：搜索 */
+.es-icon-search {
+  border: 4rpx solid var(--text-3, #6a7585);
+  border-radius: 50%;
+  width: 76rpx;
+  height: 76rpx;
+  margin: 6rpx;
+}
+
+.es-icon-search::after {
+  content: "";
+  position: absolute;
+  right: -18rpx;
+  bottom: 2rpx;
+  width: 34rpx;
+  height: 5rpx;
+  border-radius: 3rpx;
+  background: var(--text-3, #6a7585);
+  transform: rotate(45deg);
+}
+
+/* 十字：新建 */
+.es-icon-plus::before,
+.es-icon-plus::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 3rpx;
+  background: var(--text-3, #6a7585);
+  transform: translate(-50%, -50%);
+}
+
+.es-icon-plus::before {
+  width: 64rpx;
+  height: 5rpx;
+}
+
+.es-icon-plus::after {
+  width: 5rpx;
+  height: 64rpx;
+}
+
+/* 精灵球轮廓：默认 */
+.es-icon-ball {
+  border: 4rpx solid var(--text-3, #6a7585);
+  border-radius: 50%;
+}
+
+.es-icon-ball::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4rpx;
+  margin-top: -2rpx;
+  background: var(--text-3, #6a7585);
+}
+
+.es-icon-ball::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 28rpx;
+  height: 28rpx;
+  margin: -14rpx 0 0 -14rpx;
+  border: 4rpx solid var(--text-3, #6a7585);
+  border-radius: 50%;
+  background: var(--surface, #131a24);
+}
+
+.es-star {
+  font-size: 72rpx;
+  line-height: 1;
+  color: var(--text-3, #6a7585);
+}
+
+.es-title {
+  margin-top: 28rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text, #e8edf5);
+  text-align: center;
+}
+
+.es-desc {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: var(--text-3, #6a7585);
+  text-align: center;
+}
+
+.es-action {
+  margin-top: 28rpx;
+  color: var(--brand, #f2c455);
+  background: var(--brand-soft, rgba(242, 196, 85, 0.14));
+}

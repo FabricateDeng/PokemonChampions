@@ -1,0 +1,54 @@
+<nav-bar title="队伍" />
+
+<view class="page">
+  <view class="pad">
+    <view class="head">
+      <view class="head-copy grow">
+        <text class="t-title">我的队伍</text>
+        <text class="t-sub">{{count}} 支 · 保存在本机</text>
+      </view>
+      <view class="btn btn-primary btn-sm" bindtap="createTeam" hover-class="press-hover">新建队伍</view>
+    </view>
+
+    <view wx:if="{{teams.length}}" class="teams">
+      <view
+        wx:for="{{teams}}"
+        wx:key="id"
+        class="team press"
+        data-id="{{item.id}}"
+        bindtap="openTeam"
+        hover-class="press-hover"
+      >
+        <view class="team-head">
+          <text class="team-name ellipsis">{{item.name}}</text>
+          <text class="team-count num">{{item.count}}/6</text>
+        </view>
+
+        <view class="team-slots">
+          <block wx:for="{{item.slots}}" wx:for-item="slot" wx:key="key">
+            <image wx:if="{{!slot.empty}}" class="team-sprite" src="{{slot.sprite}}" mode="aspectFit" lazy-load />
+            <view wx:else class="team-sprite team-slot-empty">+</view>
+          </block>
+        </view>
+
+        <view class="team-foot">
+          <text class="t-mini">更新于 {{item.updated}}</text>
+          <text class="team-go">进入编辑 ›</text>
+        </view>
+      </view>
+    </view>
+
+    <empty-state
+      wx:else
+      icon="plus"
+      title="还没有队伍"
+      desc="创建一支队伍，配置宝可梦、招式与能力值，再做伤害推演"
+      actionText="新建队伍"
+      bind:action="createTeam"
+    />
+
+    <view class="foot-note">
+      队伍只保存在本机，不会上传服务器。能力值按 Lv.50 / IV 31 / 0–32 SP 计算。
+    </view>
+  </view>
+</view>

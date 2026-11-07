@@ -1,14 +1,20 @@
-<view class="nav-shell" style="padding-top: {{statusBarHeight}}px;">
-  <view class="nav-inner" style="height: {{navBarHeight}}px;">
-    <view wx:if="{{back}}" class="back-btn" bindtap="goBack" hover-class="back-hover" aria-role="button" aria-label="返回">
-      <view class="back-arrow"></view>
+<view class="nv" style="padding-top:{{m.statusBarHeight}}px;">
+  <view class="nv-inner" style="height:{{m.navBarHeight}}px;">
+    <view
+      wx:if="{{back}}"
+      class="nv-back"
+      hover-class="nv-back-hover"
+      bindtap="goBack"
+      aria-role="button"
+      aria-label="返回"
+    >
+      <view class="nv-arrow"></view>
     </view>
-    <view wx:elif="{{brand}}" class="brand-mark">C</view>
 
-    <view class="nav-title {{back ? 'with-back' : ''}}">
-      <text class="nav-title-text">{{title}}</text>
-      <text wx:if="{{brand}}" class="nav-kicker">CHAMPIONS DEX</text>
+    <view class="nv-titles">
+      <text class="nv-title">{{title}}</text>
+      <text wx:if="{{subtitle}}" class="nv-sub">{{subtitle}}</text>
     </view>
   </view>
 </view>
-<view style="height: {{navTotalHeight}}px;"></view>
+<view class="nv-holder" style="height:{{m.navTotalHeight}}px;"></view>

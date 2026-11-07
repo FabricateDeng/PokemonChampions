@@ -1,0 +1,84 @@
+<nav-bar title="选择宝可梦" subtitle="{{slotLabel}}" back="{{true}}" />
+
+<view class="page">
+  <view class="head" style="top:{{navTotalHeight}}px;">
+    <view class="pad">
+      <view class="search">
+        <view class="search-icon"></view>
+        <input
+          class="search-input"
+          value="{{query}}"
+          placeholder="搜索名称 / 图鉴编号 / 属性"
+          placeholder-class="ph"
+          confirm-type="search"
+          bindinput="onSearch"
+        />
+        <view wx:if="{{query}}" class="search-clear" bindtap="clearQuery" hover-class="press-hover">×</view>
+      </view>
+
+      <scroll-view class="rail chips" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="rail-inner">
+          <view
+            wx:for="{{typeList}}"
+            wx:key="key"
+            class="chip chip-sm {{typeKey === item.key ? 'chip-on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onType"
+            hover-class="press-hover"
+          >
+            <view class="chip-dot" style="background:{{item.color}};"></view>
+            <text>{{item.name}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view class="pad">
+    <view class="count">
+      <text class="count-num num">{{count}}</text>
+      <text class="count-unit">只可选</text>
+    </view>
+
+    <view wx:if="{{list.length}}" class="list">
+      <view
+        wx:for="{{list}}"
+        wx:key="key"
+        class="item"
+        data-key="{{item.key}}"
+        bindtap="select"
+        hover-class="press-hover"
+      >
+        <image class="thumb" src="{{item.sprite}}" mode="aspectFit" lazy-load />
+
+        <view class="item-main">
+          <text class="item-title">{{item.name}}</text>
+          <view class="item-meta">
+            <text class="t-mini num">{{item.dexLabel}}</text>
+            <view
+              wx:for="{{item.typesInfo}}"
+              wx:for-item="t"
+              wx:key="key"
+              class="tag"
+              style="color:{{t.color}};background:{{t.bg}};"
+            >{{t.name}}</view>
+          </view>
+        </view>
+
+        <text wx:if="{{item.inTeam}}" class="pick-badge">已在队伍</text>
+        <view wx:else class="pick-add"></view>
+      </view>
+    </view>
+
+    <empty-state
+      wx:else
+      icon="search"
+      title="没有匹配的宝可梦"
+      desc="换个关键词，或换一个属性"
+    />
+
+    <view wx:if="{{list.length}}" class="foot-note">
+      {{hasMore ? '上滑加载更多' : '已显示全部 ' + count + ' 只'}}
+    </view>
+  </view>
+</view>

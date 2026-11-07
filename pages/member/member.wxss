@@ -1,0 +1,239 @@
+/* 成员配置 */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 16rpx 0 20rpx;
+}
+
+.head-sprite {
+  width: 120rpx;
+  height: 120rpx;
+  flex-shrink: 0;
+}
+
+.head-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.head-types {
+  display: flex;
+  gap: 8rpx;
+}
+
+.head-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------- 能力值 */
+
+.stat-grid {
+  display: flex;
+  gap: 8rpx;
+}
+
+.stat-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 12rpx 0;
+  border-radius: 10rpx;
+  background: var(--surface-2);
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+
+.stat-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------- 配置行 */
+
+.cfg {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-height: 88rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.cfg:last-child {
+  border-bottom: none;
+}
+
+.cfg-label {
+  width: 72rpx;
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: var(--text-3);
+}
+
+.cfg-value {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+.cfg-note {
+  font-size: 22rpx;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------- 招式位 */
+
+.mslot {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-height: 88rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.mslot:last-child {
+  border-bottom: none;
+}
+
+.mslot-index {
+  width: 32rpx;
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+
+.mslot-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+.mslot-power {
+  font-size: 22rpx;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------- 努力值 */
+
+.sp-total {
+  display: flex;
+  align-items: baseline;
+  gap: 2rpx;
+}
+
+.sp-total-num {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.sp-total-max {
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+
+.sp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  min-height: 84rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.sp-row:last-of-type {
+  border-bottom: none;
+}
+
+.sp-label {
+  font-size: 26rpx;
+  color: var(--text-2);
+}
+
+.sp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid var(--line);
+}
+
+.sp-reset {
+  font-size: 24rpx;
+  color: var(--brand);
+}
+
+.remove {
+  margin-top: 24rpx;
+  height: 88rpx;
+  border-radius: var(--r-ctrl);
+  border: 1rpx solid var(--line);
+  font-size: 26rpx;
+  line-height: 88rpx;
+  text-align: center;
+  color: var(--danger);
+}
+
+/* ---------------------------------------------------------------- 弹层内容 */
+
+.move-cats {
+  padding: 16rpx 0 8rpx;
+}
+
+.move-opt {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.move-opt:last-child {
+  border-bottom: none;
+}
+
+.move-opt-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.move-opt-top {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.move-opt-name {
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+.move-opt-stats {
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+
+.sheet-clear {
+  margin-top: 16rpx;
+}

@@ -1,0 +1,14 @@
+<view class="es">
+  <text wx:if="{{icon === 'star'}}" class="es-star">★</text>
+  <view wx:else class="es-icon es-icon-{{icon}}"></view>
+
+  <text class="es-title">{{title}}</text>
+  <text wx:if="{{desc}}" class="es-desc">{{desc}}</text>
+
+  <view
+    wx:if="{{actionText}}"
+    class="btn btn-sm es-action"
+    bindtap="onAction"
+    hover-class="press-hover"
+  >{{actionText}}</view>
+</view>

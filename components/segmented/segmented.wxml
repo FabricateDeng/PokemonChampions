@@ -1,0 +1,13 @@
+<view class="seg">
+  <view
+    wx:for="{{items}}"
+    wx:key="key"
+    class="seg-item {{active === item.key ? 'seg-item-on' : ''}}"
+    data-key="{{item.key}}"
+    bindtap="onTap"
+    hover-class="seg-item-hover"
+  >
+    <text class="seg-label">{{item.label}}</text>
+    <text wx:if="{{item.badge}}" class="seg-badge">{{item.badge}}</text>
+  </view>
+</view>
