@@ -307,8 +307,9 @@ pages.forEach((page) => {
     const statics = raw.replace(/\{\{[\s\S]*?\}\}/g, ' ')
     const dyn = []
     raw.replace(/\{\{([\s\S]*?)\}\}/g, (mm, expr) => {
-      const q = expr.match(/'([\w-]+)'/g) || []
-      q.forEach((s) => dyn.push(s.replace(/'/g, '')))
+      // 只把三元分支里的字符串当作动态 class，避免把 {{x === 'reg' ? ...}} 的 'reg' 误判为 class
+      const q = expr.match(/[?:]\s*'([\w-]+)'/g) || []
+      q.forEach((s) => dyn.push(s.replace(/^[?:]\s*'|'$/g, '')))
       return ''
     })
     statics

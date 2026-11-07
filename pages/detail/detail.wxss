@@ -260,6 +260,32 @@
   color: var(--brand);
 }
 
+/* 未上榜：使用率只给上界，弱化处理 */
+.usage-sum.is-bounded .usage-pct {
+  font-size: 32rpx;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.bounded-note {
+  display: block;
+  margin-top: 10rpx;
+  padding: 0 4rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+
+.bounded-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.bounded-btn {
+  align-self: flex-start;
+}
+
 .ubar {
   padding: 12rpx 0;
 }

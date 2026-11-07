@@ -100,6 +100,22 @@ function runModule(file, extraGlobals) {
   return captured
 }
 
+// 支持 setData('rows[0].value', v) 这类路径写法（真机行为）
+function setPath(target, key, value) {
+  if (!/[.[]/.test(key)) {
+    target[key] = value
+    return
+  }
+  const parts = key.replace(/\[(\d+)\]/g, '.$1').split('.')
+  let cur = target
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    const p = parts[i]
+    if (cur[p] === undefined || cur[p] === null) cur[p] = {}
+    cur = cur[p]
+  }
+  cur[parts[parts.length - 1]] = value
+}
+
 function instantiate(cfg, query) {
   const inst = Object.create(null)
   Object.keys(cfg).forEach((k) => {
@@ -108,7 +124,7 @@ function instantiate(cfg, query) {
   inst.data = JSON.parse(JSON.stringify(cfg.data || {}))
   inst.setData = function (patch) {
     Object.keys(patch || {}).forEach((k) => {
-      this.data[k] = patch[k]
+      setPath(this.data, k, patch[k])
     })
   }
   inst.triggerEvent = () => {}
@@ -463,6 +479,9 @@ function buildIndexScreen(mode) {
 
 function buildDetailScreen(tab) {
   const cfg = loadPage('pages/detail/detail')
+  if (tab === 'bounded') {
+    return instantiate(cfg, { key: 'charizard', tab: 'usage' }).data
+  }
   const inst = instantiate(cfg, { key: 'primarina', tab: tab === 'usage' ? 'usage' : 'stats' })
   inst.onShow()
   if (tab === 'moves') inst.onTab({ detail: { key: 'moves' } })
@@ -470,16 +489,16 @@ function buildDetailScreen(tab) {
   return inst.data
 }
 
+function buildRankings(scope) {
+  const cfg = loadPage('pages/rankings/rankings')
+  const inst = instantiate(cfg, {})
+  if (scope === 'all') inst.onScope({ currentTarget: { dataset: { key: 'all' } } })
+  return inst.data
+}
+
 function buildPicker() {
   const cfg = loadPage('pages/picker/picker')
   return instantiate(cfg, { teamId: 't1', slot: 3 }).data
-}
-
-function buildRankings() {
-  const cfg = loadPage('pages/rankings/rankings')
-  const inst = instantiate(cfg, {})
-  inst.onShow && inst.onShow()
-  return inst.data
 }
 
 function buildTeams() {
@@ -520,11 +539,6 @@ function buildProfile() {
 function main() {
   fs.mkdirSync(OUT, { recursive: true })
   fs.mkdirSync(FRAMES, { recursive: true })
-  // 清掉上一次的产物，避免旧分组文件干扰 --zoom 匹配
-  fs.readdirSync(OUT).forEach((f) => {
-    if (f.endsWith('.png') || f.endsWith('.html')) fs.unlinkSync(path.join(OUT, f))
-  })
-  fs.readdirSync(FRAMES).forEach((f) => fs.unlinkSync(path.join(FRAMES, f)))
   seedStorage()
 
   // 单帧放大：node scripts/preview.js --zoom <关键词>
@@ -565,6 +579,12 @@ function main() {
     console.log('✓', path.relative(ROOT, png))
     return
   }
+  // 重新生成：先清掉上一次的产物，避免旧分组文件干扰 --zoom 匹配
+  fs.readdirSync(OUT).forEach((f) => {
+    if (f.endsWith('.png') || f.endsWith('.html')) fs.unlinkSync(path.join(OUT, f))
+  })
+  fs.readdirSync(FRAMES).forEach((f) => fs.unlinkSync(path.join(FRAMES, f)))
+
   const groups = [
     {
       name: 'a-图鉴',
@@ -583,17 +603,24 @@ function main() {
       ]
     },
     {
-      name: 'c-榜单与队伍',
+      name: 'c-榜单',
       frames: [
-        ['榜单', 'pages/rankings/rankings', buildRankings(), { tab: '榜单' }],
-        ['队伍', 'pages/teams/teams', buildTeams(), { tab: '队伍' }],
-        ['队伍编辑', 'pages/team/team', buildTeam(), {}]
+        ['榜单 · TOP50', 'pages/rankings/rankings', buildRankings('top'), { tab: '榜单' }],
+        ['榜单 · 全部精灵', 'pages/rankings/rankings', buildRankings('all'), { tab: '榜单' }],
+        ['详情 · 无样本', 'pages/detail/detail', buildDetailScreen('bounded'), {}]
       ]
     },
     {
-      name: 'd-配置与计算',
+      name: 'd-队伍',
       frames: [
-        ['选择宝可梦', 'pages/picker/picker', buildPicker(), {}],
+        ['队伍', 'pages/teams/teams', buildTeams(), { tab: '队伍' }],
+        ['队伍编辑', 'pages/team/team', buildTeam(), {}],
+        ['选择宝可梦', 'pages/picker/picker', buildPicker(), {}]
+      ]
+    },
+    {
+      name: 'e-配置与计算',
+      frames: [
         ['成员配置', 'pages/member/member', buildMember(), {}],
         ['伤害计算', 'pages/calc/calc', buildCalc(), {}],
         ['我的', 'pages/profile/profile', buildProfile(), { tab: '我的' }]

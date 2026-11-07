@@ -1,6 +1,8 @@
 const { getNature } = require('./natures.js')
 
 const STAT_KEYS = ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed']
+const SP_MAX = 32
+const SP_TOTAL_MAX = 66
 const STAT_LABELS = {
   hp: 'HP',
   attack: '攻击',
@@ -59,6 +61,41 @@ function spTotal(sp) {
   return (sp || []).reduce((sum, value) => sum + (Number(value) || 0), 0)
 }
 
+/**
+ * 单项能力值：把第 index 项 SP 设为 spValue 后，该项的能力值。
+ * 用于「直接填写能力值 → 反解努力值」。
+ */
+function statAt(mon, member, index, spValue) {
+  if (!mon || index < 0 || index >= STAT_KEYS.length) return 0
+  const sp = blankSp()
+  sp[index] = Math.max(0, Math.min(SP_MAX, Number(spValue) || 0))
+  return calcStats(mon, { nature: member && member.nature, sp })[STAT_KEYS[index]]
+}
+
+/**
+ * 已知目标能力值，反解最接近的 SP 分配。
+ * 返回 { sp, value, diff }；超出剩余点数时按剩余点数封顶。
+ * 能力值随 SP 单调递增，33 个候选暴力枚举即可。
+ */
+function solveSpForStat(mon, member, index, target, budget) {
+  const current = (member && member.sp) || blankSp()
+  const usedByOthers = spTotal(current) - (Number(current[index]) || 0)
+  const maxTotal = Math.max(0, Math.min(SP_MAX * 6, budget === undefined ? SP_TOTAL_MAX : budget))
+  const cap = Math.max(0, Math.min(SP_MAX, maxTotal - usedByOthers))
+  const aim = Number(target) || 0
+
+  let best = null
+  for (let sp = 0; sp <= cap; sp += 1) {
+    const value = statAt(mon, member, index, sp)
+    const diff = Math.abs(value - aim)
+    // 同样接近时取更省点数的一档
+    if (!best || diff < best.diff || (diff === best.diff && sp < best.sp)) {
+      best = { sp, value, diff }
+    }
+  }
+  return best || { sp: 0, value: statAt(mon, member, index, 0), diff: 0 }
+}
+
 function validateSp(sp) {
   const arr = sp || []
   if (arr.length !== 6) return false
@@ -73,9 +110,13 @@ module.exports = {
   STAT_KEYS,
   STAT_LABELS,
   STAT_COLORS,
+  SP_MAX,
+  SP_TOTAL_MAX,
   calcStats,
   statsArray,
   spTotal,
   validateSp,
-  blankSp
+  blankSp,
+  statAt,
+  solveSpForStat
 }

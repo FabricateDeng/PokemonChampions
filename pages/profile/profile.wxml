@@ -51,9 +51,10 @@
     <view class="section">
       <view class="section-head">
         <text class="t-section">数据说明</text>
+        <text wx:if="{{regLabel}}" class="tag-badge">规则 {{regLabel}}</text>
       </view>
       <view class="card">
-        <view wx:for="{{infoRows}}" wx:key="key" class="info">
+        <view wx:for="{{infoRows}}" wx:key="key" class="info {{item.isKey ? 'is-key' : ''}}">
           <text class="info-label">{{item.label}}</text>
           <text class="info-value">{{item.value}}</text>
         </view>

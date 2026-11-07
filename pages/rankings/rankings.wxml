@@ -4,7 +4,23 @@
   <view class="pad">
     <view class="head">
       <segmented items="{{formats}}" active="{{format}}" bind:change="onFormat" />
+
+      <view class="scope-row">
+        <view class="chip-group">
+          <view
+            wx:for="{{scopes}}"
+            wx:key="key"
+            class="chip chip-sm {{scope === item.key ? 'chip-on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onScope"
+            hover-class="press-hover"
+          >{{item.label}}</view>
+        </view>
+        <text class="scope-count num">{{count}} / {{totalCount}}</text>
+      </view>
+
       <text class="source">{{sourceText}} · {{sampleText}}</text>
+      <text wx:if="{{scope === 'all'}}" class="source">无样本的宝可梦标注为「＜ {{cutoffText}}」</text>
     </view>
 
     <view wx:if="{{top.length}}" class="top3">
@@ -27,12 +43,12 @@
       <view
         wx:for="{{rows}}"
         wx:key="key"
-        class="rk"
+        class="rk {{item.unranked ? 'is-unranked' : ''}}"
         data-key="{{item.key}}"
         bindtap="openMon"
         hover-class="press-hover"
       >
-        <text class="rk-no num">{{item.rank}}</text>
+        <text class="rk-no num">{{item.rank ? item.rank : '—'}}</text>
         <image class="rk-sprite" src="{{item.sprite}}" mode="aspectFit" lazy-load />
 
         <view class="rk-main">
@@ -50,7 +66,7 @@
         </view>
 
         <view class="rk-right">
-          <text class="rk-pct num">{{item.usageText}}</text>
+          <text class="rk-pct num {{item.unranked ? 'muted' : ''}}">{{item.usageText}}</text>
           <view class="bar rk-bar">
             <view class="bar-fill" style="width:{{item.width}};"></view>
           </view>
@@ -65,6 +81,9 @@
       desc="使用率数据需要联网获取，稍后重试或先浏览图鉴"
     />
 
-    <view wx:if="{{count}}" class="foot-note">共 {{count}} 只 · {{note}}</view>
+    <view wx:if="{{rows.length}}" class="foot-note">
+      <text wx:if="{{hasMore}}">上滑加载更多 · </text>
+      <text>{{scope === 'top' ? 'TOP50' : '全部 ' + totalCount + ' 只'}} · {{note}}</text>
+    </view>
   </view>
 </view>

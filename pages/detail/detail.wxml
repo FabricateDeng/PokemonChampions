@@ -169,64 +169,59 @@
       </view>
     </view>
 
-    <empty-state
-      wx:if="{{usageEmpty}}"
-      icon="ball"
-      title="暂无配置使用率样本"
-      desc="该宝可梦未进入当前环境 TOP50，暂未收录配置统计"
-    />
-
-    <empty-state
-      wx:elif="{{usageFormatEmpty}}"
-      icon="ball"
-      title="该赛制暂无样本"
-      desc="换一个单打 / 双打视角试试"
-    />
-
-    <block wx:else>
-      <view class="card usage-sum">
+    <block wx:if="{{usageSummary}}">
+      <view class="card usage-sum {{usageBounded ? 'is-bounded' : ''}}">
         <view class="usage-sum-main">
           <text class="usage-rank num">{{usageSummary.rankText}}</text>
           <text class="usage-pct num">{{usageSummary.pctText}}</text>
         </view>
-        <text class="t-mini">使用率 · {{usageSummary.sourceText}}</text>
+        <text class="t-mini">{{usageSummary.sourceText}}</text>
         <text class="t-mini">{{usageSummary.sampleText}}</text>
       </view>
 
-      <view wx:for="{{usageSections}}" wx:key="key" class="card block">
-        <view class="block-head">
-          <text class="t-section">{{item.title}}</text>
-          <text class="t-mini">{{item.note}}</text>
-        </view>
+      <text wx:if="{{usageBounded}}" class="bounded-note">{{usageSummary.note}}</text>
 
-        <block wx:if="{{item.kind === 'bar'}}">
-          <view wx:for="{{item.items}}" wx:for-item="row" wx:key="name" class="ubar">
-            <view class="ubar-top">
-              <text class="ubar-name ellipsis">{{row.name}}</text>
-              <view wx:if="{{row.typeName}}" class="tag" style="color:{{row.typeColor}};background:{{row.typeBg}};">{{row.typeName}}</view>
-              <text class="ubar-pct num">{{row.pctText}}</text>
-            </view>
-            <view class="bar">
-              <view class="bar-fill" style="width:{{row.width}};"></view>
-            </view>
+      <view wx:if="{{usageSections.length}}">
+        <view wx:for="{{usageSections}}" wx:key="key" class="card block">
+          <view class="block-head">
+            <text class="t-section">{{item.title}}</text>
+            <text class="t-mini">{{item.note}}</text>
           </view>
-        </block>
 
-        <block wx:else>
-          <view wx:for="{{item.items}}" wx:for-item="row" wx:key="key" class="spread">
-            <view class="ubar-top">
-              <text class="ubar-name">{{row.name}}</text>
-              <text class="ubar-pct num">{{row.pctText}}</text>
-            </view>
-            <view class="spread-cells">
-              <view wx:for="{{row.cells}}" wx:for-item="c" wx:key="key" class="spread-cell">
-                <text class="spread-label">{{c.label}}</text>
-                <text class="spread-value num">{{c.value}}</text>
+          <block wx:if="{{item.kind === 'bar'}}">
+            <view wx:for="{{item.items}}" wx:for-item="row" wx:key="name" class="ubar">
+              <view class="ubar-top">
+                <text class="ubar-name ellipsis">{{row.name}}</text>
+                <view wx:if="{{row.typeName}}" class="tag" style="color:{{row.typeColor}};background:{{row.typeBg}};">{{row.typeName}}</view>
+                <text class="ubar-pct num">{{row.pctText}}</text>
+              </view>
+              <view class="bar">
+                <view class="bar-fill" style="width:{{row.width}};"></view>
               </view>
             </view>
-          </view>
-          <text class="t-mini">顺序：HP / 攻击 / 防御 / 特攻 / 特防 / 速度（0–32 SP）</text>
-        </block>
+          </block>
+
+          <block wx:else>
+            <view wx:for="{{item.items}}" wx:for-item="row" wx:key="key" class="spread">
+              <view class="ubar-top">
+                <text class="ubar-name">{{row.name}}</text>
+                <text class="ubar-pct num">{{row.pctText}}</text>
+              </view>
+              <view class="spread-cells">
+                <view wx:for="{{row.cells}}" wx:for-item="c" wx:key="key" class="spread-cell">
+                  <text class="spread-label">{{c.label}}</text>
+                  <text class="spread-value num">{{c.value}}</text>
+                </view>
+              </view>
+            </view>
+            <text class="t-mini">顺序：HP / 攻击 / 防御 / 特攻 / 特防 / 速度（0–32 SP）</text>
+          </block>
+        </view>
+      </view>
+
+      <view wx:else class="card block bounded-empty">
+        <text class="t-sub">{{usageBounded ? '未进入榜单的宝可梦不提供配置分布（特性 / 道具 / 性格 / 努力值 / 招式）。' : '该赛制暂无配置分布样本。'}}</text>
+        <view class="btn btn-ghost btn-sm bounded-btn" bindtap="goRankings" hover-class="press-hover">查看使用率榜单</view>
       </view>
 
       <view class="foot-note">使用率为样本统计，不等同于强度排名</view>

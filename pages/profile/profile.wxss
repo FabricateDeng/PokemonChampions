@@ -56,6 +56,12 @@
   border-bottom: none;
 }
 
+/* 当前规则：唯一需要强调的一行 */
+.info.is-key .info-value {
+  color: var(--brand);
+  font-weight: 600;
+}
+
 .info-label {
   flex-shrink: 0;
   font-size: 24rpx;

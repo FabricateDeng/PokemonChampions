@@ -41,7 +41,9 @@ Page({
     meta: META,
     infoRows: [],
     sources: SOURCES,
-    version: '1.0.0'
+    version: '1.0.0',
+    regLabel: '',
+    regRange: ''
   },
 
   onShow() {
@@ -60,11 +62,28 @@ Page({
     const singles = meta.singles || {}
     const doubles = meta.doubles || {}
 
+    // 当前规则以双打样本的赛制为准（单打格式同为 reg M-C）
+    const regLabel = doubles.regulation || 'M-C'
+    const regRange = doubles.from && doubles.to
+      ? `${doubles.from.slice(5).replace('-', '.')} – ${doubles.to.slice(5).replace('-', '.')}`
+      : ''
+
+    const ranked = new Set(
+      [].concat(
+        (usage.RANKINGS && usage.RANKINGS.singles) || [],
+        (usage.RANKINGS && usage.RANKINGS.doubles) || []
+      ).map((row) => row.key)
+    )
+    const covered = ranked.size
+
     this.setData({
       favs: favorites,
       favCount: favorites.length,
       teamCount: store.listTeams().length,
+      regLabel,
+      regRange,
       infoRows: [
+        { key: 'reg', isKey: true, label: '当前规则', value: `规则 ${regLabel}${regRange ? '（' + regRange + '）' : ''}` },
         { key: 'count', label: '收录', value: `${META.count} 只 · ${META.megaCount} 个超级进化` },
         { key: 'moves', label: '招式', value: `${META.moveCount} 个 · 特性 ${META.abilityCount} 个` },
         { key: 'data', label: '图鉴数据', value: `更新于 ${META.updated}` },
@@ -81,6 +100,11 @@ Page({
           value: doubles.source
             ? `${doubles.source} · ${doubles.regulation} · 近 30 天 · ${doubles.tournaments} 项赛事`
             : '—'
+        },
+        {
+          key: 'coverage',
+          label: '使用率覆盖',
+          value: `榜单收录 ${covered} 只，其余 ${Math.max(0, META.count - covered)} 只标注未上榜`
         },
         { key: 'sp', label: '能力值体系', value: 'Lv.50 / IV 31 / 0–32 SP（总和 66）' }
       ]

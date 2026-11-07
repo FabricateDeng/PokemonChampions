@@ -58,6 +58,22 @@ function loadPage(rel) {
   return cfg
 }
 
+// 支持 setData('rows[0].value', v) 这类路径写法（真机行为）
+function setPath(target, key, value) {
+  if (!/[.[]/.test(key)) {
+    target[key] = value
+    return
+  }
+  const parts = key.replace(/\[(\d+)\]/g, '.$1').split('.')
+  let cur = target
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    const p = parts[i]
+    if (cur[p] === undefined || cur[p] === null) cur[p] = {}
+    cur = cur[p]
+  }
+  cur[parts[parts.length - 1]] = value
+}
+
 function instantiate(rel, query) {
   const cfg = loadPage(rel)
   const inst = {}
@@ -67,7 +83,7 @@ function instantiate(rel, query) {
   inst.data = JSON.parse(JSON.stringify(cfg.data || {}))
   inst.setData = function (patch) {
     Object.keys(patch || {}).forEach((k) => {
-      this.data[k] = patch[k]
+      setPath(this.data, k, patch[k])
     })
   }
   inst.triggerEvent = () => {}
@@ -226,10 +242,35 @@ run('详情：不存在的 key 走空态', () => {
 run('榜单：单打/双打', () => {
   const p = instantiate('pages/rankings/rankings')
   ok(p.data.count === 50, 'TOP50，实际 ' + p.data.count)
+  ok(p.data.totalCount === 348, '全部精灵 348 只，实际 ' + p.data.totalCount)
   ok(p.data.top.length === 3, '前三名')
   ok(p.data.rows.length === 47, '其余 47 行')
   p.onFormat(event({}, { key: 'doubles' }))
   ok(p.data.format === 'doubles' && p.data.count === 50, '切换双打')
+
+  // 全部精灵视图：未上榜也要有自己的行
+  p.onScope(event({ key: 'all' }))
+  ok(p.data.scope === 'all', '切到全部精灵')
+  ok(p.data.top.length === 0, '全部视图不显示 TOP3')
+  ok(p.data.count === 348, '全部 348 只，实际 ' + p.data.count)
+  ok(p.data.rows.length === 50, '首屏 50 行，实际 ' + p.data.rows.length)
+  ok(p.data.hasMore === true, '还有更多')
+  p.onReachBottom()
+  ok(p.data.rows.length === 100, '触底追加到 100 行，实际 ' + p.data.rows.length)
+  ok(p.data.rows.some((r) => r.unranked && r.usageText.indexOf('<') === 0), '未上榜行给出使用率上界')
+
+  p.onScope(event({ key: 'top' }))
+  ok(p.data.scope === 'top' && p.data.rows.length === 47, '切回 TOP50')
+})
+
+run('详情：未上榜精灵也有使用率', () => {
+  const p = instantiate('pages/detail/detail', { key: 'charizard', tab: 'usage' })
+  ok(p.data.usageBounded === true, '未上榜标记')
+  ok(p.data.usageSummary && p.data.usageSummary.rankText === '未上榜', '排名显示未上榜')
+  ok(p.data.usageSummary.pctText.indexOf('<') === 0, '给出使用率上界 ' + p.data.usageSummary.pctText)
+  ok(p.data.usageSections.length === 0, '没有配置分布')
+  p.onUsageFormat(event({ key: 'doubles' }))
+  ok(p.data.usageSummary.pctText.indexOf('<') === 0, '双打同样给出上界 ' + p.data.usageSummary.pctText)
 })
 
 /* ---------------------------------------------------------------- 队伍 */
@@ -279,15 +320,46 @@ run('选择宝可梦', () => {
 
 run('成员配置', () => {
   const p = instantiate('pages/member/member', { teamId: 't1', slot: 1 })
+  const store = require(path.join(ROOT, 'utils', 'team-store.js'))
   ok(p.data.mon && p.data.mon.name === '赛富豪', '加载成员')
-  ok(p.data.stats.length === 6, '六项能力值')
+  ok(p.data.rows.length === 6, '能力值/努力值 6 行')
+  ok(p.data.rows[0].value === 194, 'HP 194，实际 ' + p.data.rows[0].value)
+  ok(p.data.rows[0].sp === 32 && p.data.rows[0].spText === '32', '努力值文本回显')
+  ok(p.data.rows[3].mark === '+' && p.data.rows[1].mark === '−', '性格修正标记（+特攻 / −攻击）')
   ok(p.data.spTotal === 66, '努力值 66，实际 ' + p.data.spTotal)
   ok(p.data.moveSlots.length === 4 && p.data.moveSlots.every((s) => !s.empty), '四个招式位已填满')
 
+  // 步进器：满 66 时不能再加
   p.changeSp(event({ index: 0, delta: 1 }))
   ok(p.data.spTotal === 66, '上限被拦截（仍为 66）')
-  p.changeSp(event({ index: 0, delta: -1 }))
-  ok(p.data.spTotal === 65 && p.data.spLeft === 1, '减一点后剩余 1')
+
+  // 键盘填努力值：即时反映到能力值
+  p.onSpInput(event({ index: 0 }, { value: '20' }))
+  ok(store.getTeam('t1').members[1].sp[0] === 20, '努力值输入写入 storage')
+  ok(p.data.spTotal === 54 && p.data.spLeft === 12, '总和与剩余即时更新：' + p.data.spTotal)
+  ok(p.data.rows[0].value === 182, 'HP 随努力值即时变为 182，实际 ' + p.data.rows[0].value)
+
+  // 越界输入在失焦时截断
+  p.onSpBlur(event({ index: 0 }, { value: '99' }))
+  ok(store.getTeam('t1').members[1].sp[0] === 32, '超上限截断到 32')
+
+  // 键盘填能力值：反解努力值（先腾出点数）
+  p.onSpInput(event({ index: 0 }, { value: '20' }))
+  const beforeValue = p.data.rows[2].value
+  p.onStatBlur(event({ index: 2 }, { value: '130' }))
+  const afterRow = p.data.rows[2]
+  ok(afterRow.sp > 0, '填写能力值 130 → 反解出防御努力值 ' + afterRow.sp)
+  ok(afterRow.value > beforeValue && afterRow.value <= 130, '反解后防御能力值 ' + afterRow.value + '（原 ' + beforeValue + '）')
+  ok(p.data.spTotal <= 66, '反解后总和不超过 66：' + p.data.spTotal)
+
+  // 无法达成时给出最接近值而不是崩掉
+  p.onStatBlur(event({ index: 2 }, { value: '999' }))
+  ok(p.data.rows[2].value > 0 && p.data.spTotal <= 66, '极端目标值不越界')
+
+  // 空输入 / 非法输入回退
+  p.onStatBlur(event({ index: 2 }, { value: '' }))
+  p.onSpBlur(event({ index: 2 }, { value: 'abc' }))
+  ok(p.data.rows[2].sp >= 0, '非法输入被忽略')
 
   p.openSheet(event({ kind: 'item' }))
   ok(p.data.itemList.length === 60, '道具面板首批 60 项')
@@ -295,7 +367,7 @@ run('成员配置', () => {
   p.setData({ itemList: p.filterItems('果') })
   ok(p.data.itemList.length > 0 && p.data.itemList.every((i) => i.name.indexOf('果') >= 0 || i.name === '无道具'), '道具搜索')
   p.pickItem(event({ key: 'sitrus-berry' }))
-  ok(require(path.join(ROOT, 'utils', 'team-store.js')).getTeam('t1').members[1].item === 'sitrus-berry', '道具保存')
+  ok(store.getTeam('t1').members[1].item === 'sitrus-berry', '道具保存')
 
   p.openSheet(event({ kind: 'move', slot: 0 }))
   ok(p.data.moveList.length > 0 && p.data.moveList.some((m) => m.selected), '招式面板含已选标记')
@@ -305,10 +377,14 @@ run('成员配置', () => {
   p.openSheet(event({ kind: 'nature' }))
   ok(p.data.natureList.length === 25, '25 种性格')
   p.pickNature(event({ key: 'timid' }))
-  ok(require(path.join(ROOT, 'utils', 'team-store.js')).getTeam('t1').members[1].nature === 'timid', '性格保存')
+  ok(store.getTeam('t1').members[1].nature === 'timid', '性格保存')
+  ok(p.data.rows[5].mark === '+' && p.data.rows[1].mark === '−', '换性格后标记随之变化')
 
   p.openSheet(event({ kind: 'ability' }))
   ok(p.data.abilityList.length >= 1 && p.data.abilityList[0].selected === true, '特性面板默认选中首项')
+
+  p.resetSp()
+  ok(p.data.spTotal === 0 && p.data.rows.every((r) => r.sp === 0), '重置努力值')
 })
 
 /* ---------------------------------------------------------------- 伤害计算 */

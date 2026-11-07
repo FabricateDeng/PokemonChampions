@@ -1,4 +1,4 @@
-/* 成员配置 */
+/* 成员配置：能力值 / 努力值 同表编辑 */
 
 .head {
   display: flex;
@@ -32,33 +32,143 @@
   color: var(--text);
 }
 
-/* ---------------------------------------------------------------- 能力值 */
+/* ---------------------------------------------------------------- 能力值 / 努力值 */
 
-.stat-grid {
+.sp-total {
   display: flex;
-  gap: 8rpx;
+  align-items: baseline;
+  gap: 2rpx;
 }
 
-.stat-cell {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4rpx;
-  padding: 12rpx 0;
-  border-radius: 10rpx;
-  background: var(--surface-2);
+.sp-total-num {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--brand);
 }
 
-.stat-label {
+.sp-total-max {
   font-size: 22rpx;
   color: var(--text-3);
 }
 
-.stat-value {
+.stat-head {
+  display: flex;
+  align-items: center;
+  padding-bottom: 8rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.stat-head-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 22rpx;
+  color: var(--text-3);
+}
+
+.stat-head-value {
+  width: 132rpx;
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.stat-head-sp {
+  width: 252rpx;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.stat-row:last-of-type {
+  border-bottom: none;
+}
+
+.stat-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.stat-label {
+  font-size: 26rpx;
+  color: var(--text-2);
+}
+
+.stat-mark {
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-mark.up {
+  color: var(--success);
+}
+
+.stat-mark.down {
+  color: var(--danger);
+}
+
+/* 能力值：看起来与努力值输入框同源，都可直接键盘填写 */
+.stat-input {
+  width: 132rpx;
+  height: 56rpx;
+  flex-shrink: 0;
+  border-radius: 10rpx;
+  background: var(--surface-2);
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+}
+
+.sp-ctrl {
+  width: 252rpx;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 4rpx;
+  border-radius: 12rpx;
+  background: var(--surface-2);
+}
+
+.sp-input {
+  width: 96rpx;
+  height: 56rpx;
+  flex-shrink: 0;
+  text-align: center;
   font-size: 28rpx;
   font-weight: 600;
   color: var(--text);
+}
+
+.sp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid var(--line);
+}
+
+.sp-reset {
+  font-size: 24rpx;
+  color: var(--brand);
+  flex-shrink: 0;
 }
 
 /* ---------------------------------------------------------------- 配置行 */
@@ -127,58 +237,6 @@
   font-size: 22rpx;
   color: var(--text-3);
   flex-shrink: 0;
-}
-
-/* ---------------------------------------------------------------- 努力值 */
-
-.sp-total {
-  display: flex;
-  align-items: baseline;
-  gap: 2rpx;
-}
-
-.sp-total-num {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: var(--brand);
-}
-
-.sp-total-max {
-  font-size: 22rpx;
-  color: var(--text-3);
-}
-
-.sp-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
-  min-height: 84rpx;
-  border-bottom: 1rpx solid var(--line);
-}
-
-.sp-row:last-of-type {
-  border-bottom: none;
-}
-
-.sp-label {
-  font-size: 26rpx;
-  color: var(--text-2);
-}
-
-.sp-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
-  margin-top: 16rpx;
-  padding-top: 16rpx;
-  border-top: 1rpx solid var(--line);
-}
-
-.sp-reset {
-  font-size: 24rpx;
-  color: var(--brand);
 }
 
 .remove {

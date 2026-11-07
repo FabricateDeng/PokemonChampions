@@ -67,8 +67,7 @@ Page({
 
     usageFormat: 'singles',
     usageFormats: [],
-    usageEmpty: false,
-    usageFormatEmpty: false,
+    usageBounded: false,
     usageSummary: null,
     usageSections: []
   },
@@ -198,33 +197,58 @@ Page({
   },
 
   buildUsage(format) {
-    const u = this.usageRaw
     const isSingles = format === 'singles'
+    const data = this.usageData || {}
+    const meta = data.META || {}
+    const singles = meta.singles || {}
+    const doubles = meta.doubles || {}
+    const rankings = (data.RANKINGS && data.RANKINGS[format]) || []
+    const cutoff = rankings.length ? rankings[rankings.length - 1].usage : null
+    const block = this.usageRaw ? (isSingles ? this.usageRaw.s : this.usageRaw.d) : null
 
-    if (!u) {
-      this.setData({
-        usageFormat: format,
-        usageEmpty: true,
-        usageFormatEmpty: false,
-        usageSummary: null,
-        usageSections: []
-      })
-      return
-    }
+    const sourceText = isSingles
+      ? `${singles.source || 'Smogon'} · ${singles.month || '—'} · ${singles.cutoff || '—'} 分位`
+      : `${doubles.source || 'Limitless'} · ${doubles.regulation || '—'} · ${(doubles.from || '').slice(5).replace('-', '.')}–${(doubles.to || '').slice(5).replace('-', '.')}`
+    const sampleText = isSingles
+      ? `样本 ${fmt.numberText(singles.battles)} 场对战`
+      : `${doubles.tournaments || 0} 项赛事`
 
-    const block = isSingles ? u.s : u.d
+    // 没有该赛制的配置样本：仍然给出「上榜状态 + 使用率上界」，让每只宝可梦都有使用率可看
     if (!block) {
+      const ranked = rankings.filter((row) => row.key === this.raw.key)[0] || null
+      if (ranked) {
+        this.setData({
+          usageFormat: format,
+          usageBounded: false,
+          usageSummary: {
+            rankText: '#' + ranked.rank,
+            pctText: fmt.pctText(ranked.usage),
+            sourceText,
+            sampleText,
+            note: '该赛制暂无配置分布样本'
+          },
+          usageSections: []
+        })
+        return
+      }
+
       this.setData({
         usageFormat: format,
-        usageEmpty: false,
-        usageFormatEmpty: true,
-        usageSummary: null,
+        usageBounded: true,
+        usageSummary: {
+          rankText: '未上榜',
+          pctText: cutoff === null ? '—' : '< ' + fmt.pctText(cutoff),
+          sourceText,
+          sampleText,
+          note: cutoff === null
+            ? '暂无该赛制样本'
+            : `${isSingles ? '单打' : '双打'}样本仅收录 TOP50，未上榜表示使用率低于 ${fmt.pctText(cutoff)}`
+        },
         usageSections: []
       })
       return
     }
 
-    const meta = (this.usageData && this.usageData.META) || {}
     const bar = (name, pct) => ({
       name,
       pctText: fmt.pctText(pct),
@@ -292,25 +316,29 @@ Page({
       })
     }
 
-    const sourceText = isSingles
-      ? `${meta.singles.source} · ${meta.singles.month} · ${meta.singles.cutoff} 分位`
-      : `${meta.doubles.source} · ${meta.doubles.regulation} · ${meta.doubles.from.slice(5).replace('-', '.')}–${meta.doubles.to.slice(5).replace('-', '.')}`
-    const sampleText = isSingles
+    const blockSource = isSingles
+      ? `${singles.source} · ${singles.month} · ${singles.cutoff} 分位`
+      : `${doubles.source} · ${doubles.regulation} · ${doubles.from.slice(5).replace('-', '.')}–${doubles.to.slice(5).replace('-', '.')}`
+    const blockSample = isSingles
       ? `样本 ${fmt.numberText(block.raw)}`
       : `队伍 ${fmt.numberText(block.teams)} · 胜率 ${(block.winRate || 0).toFixed(1)}%`
 
     this.setData({
       usageFormat: format,
-      usageEmpty: false,
-      usageFormatEmpty: false,
+      usageBounded: false,
       usageSummary: {
         rankText: block.rank ? '#' + block.rank : '未上榜',
         pctText: block.usage ? fmt.pctText(block.usage) : '—',
-        sourceText,
-        sampleText
+        sourceText: blockSource,
+        sampleText: blockSample,
+        note: ''
       },
       usageSections: sections
     })
+  },
+
+  goRankings() {
+    wx.navigateTo({ url: routes.rankings })
   },
 
   onUsageFormat(e) {

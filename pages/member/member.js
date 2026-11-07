@@ -1,13 +1,21 @@
 const store = require('../../utils/team-store.js')
 const { ABILITIES, MOVES } = require('../../data/pokedex.js')
 const { ITEMS } = require('../../data/items.js')
-const { calcStats, spTotal, blankSp } = require('../../utils/stats.js')
+const {
+  calcStats,
+  spTotal,
+  blankSp,
+  solveSpForStat,
+  SP_MAX,
+  SP_TOTAL_MAX,
+  STAT_KEYS: STAT_KEY_LIST,
+  STAT_LABELS: STAT_LABEL_MAP
+} = require('../../utils/stats.js')
 const { NATURES, getNature, natureEffect } = require('../../utils/natures.js')
 const ui = require('../../utils/ui.js')
 
-const STAT_LABELS = ['HP', '攻击', '防御', '特攻', '特防', '速度']
-const SP_MAX = 32
-const SP_TOTAL_MAX = 66
+const STAT_KEYS = STAT_KEY_LIST
+const STAT_LABELS = STAT_KEYS.map((key) => STAT_LABEL_MAP[key])
 
 const ITEM_OPTIONS = [{ key: '', name: '无道具', searchText: '无道具' }].concat(
   ITEMS.map((x) => ({ key: x.key, name: x.name, searchText: x.name.toLowerCase() }))
@@ -23,8 +31,13 @@ Page({
   data: {
     mon: null,
     teamName: '',
-    stats: [],
     natureEffectText: '',
+
+    // 能力值 / 努力值 合并表
+    rows: [],
+    spTotal: 0,
+    spLeft: SP_TOTAL_MAX,
+    spMax: SP_TOTAL_MAX,
 
     abilityName: '',
     itemName: '',
@@ -32,15 +45,10 @@ Page({
 
     moveSlots: [],
 
-    spView: [],
-    spTotal: 0,
-    spLeft: SP_TOTAL_MAX,
-
     sheet: '',
     sheetTitle: '',
 
     abilityList: [],
-    itemOptions: [],
     itemList: [],
     itemQuery: '',
     natureList: [],
@@ -53,8 +61,7 @@ Page({
       { key: 'status', name: '变化' }
     ],
     moveCatIndex: 0,
-    moveSlotIndex: 0,
-    pendingMoveKey: ''
+    moveSlotIndex: 0
   },
 
   onLoad(options) {
@@ -89,7 +96,6 @@ Page({
     this.allMoves = this.rawMon.moves
       .map((k) => ui.moveView(k))
       .filter(Boolean)
-      .map((m) => ({ ...m, selected: false }))
 
     this.setData({
       teamName: team.name,
@@ -100,18 +106,36 @@ Page({
         dexLabel: '#' + String(this.rawMon.dex).padStart(3, '0'),
         typesInfo: this.rawMon.types.map(ui.typeInfo),
         total: this.rawMon.total
-      },
-      abilityOptions: this.abilityOptions,
-      itemOptions: ITEM_OPTIONS.map((x) => ({ key: x.key, name: x.name }))    })
+      }
+    })
 
     this.refresh()
   },
 
+  /* ------------------------------------------------------------ 视图 */
+
   refresh() {
     if (!this.member || !this.rawMon) return
     const stats = calcStats(this.rawMon, this.member)
+    const nature = getNature(this.member.nature)
     const sp = Array.isArray(this.member.sp) ? this.member.sp : blankSp()
     const total = spTotal(sp)
+
+    const rows = STAT_KEYS.map((key, index) => {
+      const value = stats[key]
+      return {
+        index,
+        key,
+        label: STAT_LABELS[index],
+        value,
+        sp: sp[index],
+        spText: String(sp[index]),
+        mark: nature.up === key ? '+' : nature.down === key ? '−' : '',
+        markUp: nature.up === key,
+        canMinus: sp[index] > 0,
+        canPlus: sp[index] < SP_MAX && total < SP_TOTAL_MAX
+      }
+    })
 
     const moveSlots = [0, 1, 2, 3].map((i) => {
       const key = this.member.moves[i] || ''
@@ -130,28 +154,16 @@ Page({
     })
 
     this.setData({
-      stats: STAT_LABELS.map((label, i) => ({
-        key: 'stat' + i,
-        label,
-        value: stats[['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'][i]]
-      })),
+      rows,
+      spTotal: total,
+      spLeft: Math.max(0, SP_TOTAL_MAX - total),
       natureEffectText: natureEffect(this.member.nature),
       abilityName: (ABILITIES[this.member.ability] || {}).name || '未选特性',
       itemName: this.member.item
         ? (ITEM_OPTIONS.find((x) => x.key === this.member.item) || {}).name || this.member.item
         : '无道具',
-      natureName: getNature(this.member.nature).name,
-      moveSlots,
-      spView: sp.map((value, i) => ({
-        index: i,
-        key: 'sp' + i,
-        label: STAT_LABELS[i],
-        value,
-        canMinus: value > 0,
-        canPlus: value < SP_MAX && total < SP_TOTAL_MAX
-      })),
-      spTotal: total,
-      spLeft: Math.max(0, SP_TOTAL_MAX - total)
+      natureName: nature.name,
+      moveSlots
     })
   },
 
@@ -159,10 +171,119 @@ Page({
     const updated = store.updateMember(this.teamId, this.slot, patch)
     if (!updated) {
       wx.showToast({ title: '保存失败，请重试', icon: 'none' })
-      return
+      return false
     }
     this.member = updated
     this.refresh()
+    return true
+  },
+
+  /* ------------------------------------------------------------ 能力值 / 努力值 */
+
+  // 直接填写能力值：反解努力值（能力值随 SP 单调，取最接近的一档）
+  onStatBlur(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const raw = String(e.detail.value === undefined ? '' : e.detail.value).trim()
+    if (Number.isNaN(index) || index < 0 || index >= STAT_KEYS.length) return
+
+    const target = parseInt(raw, 10)
+    const current = this.member.sp[index]
+    if (Number.isNaN(target)) {
+      this.refresh()
+      return
+    }
+
+    const solved = solveSpForStat(this.rawMon, this.member, index, target, SP_TOTAL_MAX)
+    const sp = this.member.sp.slice()
+    sp[index] = solved.sp
+    if (solved.sp === current) {
+      this.refresh()
+      if (solved.value !== target) {
+        wx.showToast({ title: `该项能力值只能是 ${solved.value}`, icon: 'none' })
+      }
+      return
+    }
+    this.save({ sp })
+    if (solved.value !== target) {
+      wx.showToast({
+        title: `已按努力值取最接近的一档：${solved.value}`,
+        icon: 'none',
+        duration: 1400
+      })
+    }
+  },
+
+  // 键盘输入努力值：合法即写入，不重写输入框文本，避免光标跳动
+  onSpInput(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const raw = String(e.detail.value === undefined ? '' : e.detail.value).trim()
+    if (Number.isNaN(index) || raw === '') return
+
+    const value = parseInt(raw, 10)
+    if (Number.isNaN(value) || value < 0 || value > SP_MAX) return
+
+    const sp = this.member.sp.slice()
+    const others = spTotal(sp) - sp[index]
+    if (others + value > SP_TOTAL_MAX) return
+
+    sp[index] = value
+    const updated = store.updateMember(this.teamId, this.slot, { sp })
+    if (!updated) return
+    this.member = updated
+
+    const total = spTotal(sp)
+    const stats = calcStats(this.rawMon, this.member)
+    this.setData({
+      ['rows[' + index + '].value']: stats[STAT_KEYS[index]],
+      spTotal: total,
+      spLeft: Math.max(0, SP_TOTAL_MAX - total)
+    })
+  },
+
+  // 失焦时归一化：越界截断、超总和截断、文本归位
+  onSpBlur(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    if (Number.isNaN(index)) return
+
+    const raw = String(e.detail.value === undefined ? '' : e.detail.value).trim()
+    const sp = this.member.sp.slice()
+    let value = parseInt(raw, 10)
+    if (Number.isNaN(value)) value = sp[index]
+    value = Math.max(0, Math.min(SP_MAX, value))
+
+    const others = spTotal(sp) - sp[index]
+    const cap = Math.max(0, SP_TOTAL_MAX - others)
+    if (value > cap) {
+      value = cap
+      wx.showToast({ title: '努力值总和上限 66 点', icon: 'none' })
+    }
+
+    if (value === sp[index]) {
+      this.refresh()
+      return
+    }
+    sp[index] = value
+    this.save({ sp })
+  },
+
+  changeSp(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const delta = Number(e.currentTarget.dataset.delta)
+    if (Number.isNaN(index) || Number.isNaN(delta)) return
+
+    const sp = this.member.sp.slice()
+    const next = (sp[index] || 0) + delta
+    if (next < 0 || next > SP_MAX) return
+    if (delta > 0 && spTotal(sp) >= SP_TOTAL_MAX) {
+      wx.showToast({ title: '努力值总和上限 66 点', icon: 'none' })
+      return
+    }
+    sp[index] = next
+    this.save({ sp })
+  },
+
+  resetSp() {
+    this.save({ sp: blankSp() })
   },
 
   /* ------------------------------------------------------------ 面板开关 */
@@ -325,28 +446,6 @@ Page({
     moves[slot] = ''
     this.setData({ sheet: '' })
     this.save({ moves })
-  },
-
-  /* ------------------------------------------------------------ 努力值 */
-
-  changeSp(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const delta = Number(e.currentTarget.dataset.delta)
-    if (Number.isNaN(index) || Number.isNaN(delta)) return
-
-    const sp = (this.member.sp || blankSp()).slice()
-    const next = (sp[index] || 0) + delta
-    if (next < 0 || next > SP_MAX) return
-    if (delta > 0 && spTotal(sp) >= SP_TOTAL_MAX) {
-      wx.showToast({ title: '努力值总和上限 66 点', icon: 'none' })
-      return
-    }
-    sp[index] = next
-    this.save({ sp })
-  },
-
-  resetSp() {
-    this.save({ sp: blankSp() })
   },
 
   /* ------------------------------------------------------------ 移除 */

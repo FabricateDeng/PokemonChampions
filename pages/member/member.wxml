@@ -19,17 +19,67 @@
       </view>
     </view>
 
-    <!-- 能力值 -->
+    <!-- 能力值 + 努力值：同一张表，改努力值即时看到能力值变化 -->
     <view class="card block">
       <view class="block-head">
-        <text class="t-section">能力值</text>
-        <text class="t-mini">Lv.50 / IV 31 · {{natureEffectText}}</text>
-      </view>
-      <view class="stat-grid">
-        <view wx:for="{{stats}}" wx:key="key" class="stat-cell">
-          <text class="stat-label">{{item.label}}</text>
-          <text class="stat-value num">{{item.value}}</text>
+        <text class="t-section">能力值 / 努力值</text>
+        <view class="sp-total">
+          <text class="sp-total-num num">{{spTotal}}</text>
+          <text class="sp-total-max">/ {{spMax}}</text>
         </view>
+      </view>
+
+      <view class="stat-head">
+        <text class="stat-head-name">Lv.50 · IV 31</text>
+        <text class="stat-head-value">能力值</text>
+        <text class="stat-head-sp">努力值</text>
+      </view>
+
+      <view wx:for="{{rows}}" wx:key="key" class="stat-row">
+        <view class="stat-name">
+          <text class="stat-label">{{item.label}}</text>
+          <text wx:if="{{item.mark}}" class="stat-mark {{item.markUp ? 'up' : 'down'}}">{{item.mark}}</text>
+        </view>
+
+        <input
+          class="stat-input num"
+          type="number"
+          value="{{item.value}}"
+          data-index="{{item.index}}"
+          bindblur="onStatBlur"
+          bindconfirm="onStatBlur"
+          confirm-type="done"
+        />
+
+        <view class="sp-ctrl">
+          <view
+            class="step-btn {{item.canMinus ? '' : 'off'}}"
+            data-index="{{item.index}}"
+            data-delta="-1"
+            bindtap="changeSp"
+            hover-class="press-hover"
+          >−</view>
+          <input
+            class="sp-input num"
+            type="number"
+            value="{{item.spText}}"
+            data-index="{{item.index}}"
+            bindinput="onSpInput"
+            bindblur="onSpBlur"
+          />
+          <view
+            class="step-btn {{item.canPlus ? '' : 'off'}}"
+            data-index="{{item.index}}"
+            data-delta="1"
+            bindtap="changeSp"
+            hover-class="press-hover"
+          >+</view>
+        </view>
+      </view>
+
+      <view class="sp-foot">
+        <text class="t-mini">剩余 {{spLeft}} 点 · 单项上限 32 · 能力值与努力值均可直接输入</text>
+        <text class="sp-reset" bindtap="resetSp" hover-class="press-hover">重置</text>
       </view>
     </view>
 
@@ -85,42 +135,6 @@
         >{{item.typeName}}</view>
         <text wx:if="{{!item.empty}}" class="mslot-power num">威力 {{item.powerText}}</text>
         <view class="chev"></view>
-      </view>    </view>
-
-    <!-- 努力值 -->
-    <view class="card block">
-      <view class="block-head">
-        <text class="t-section">努力值</text>
-        <view class="sp-total">
-          <text class="sp-total-num num">{{spTotal}}</text>
-          <text class="sp-total-max">/66</text>
-        </view>
-      </view>
-
-      <view wx:for="{{spView}}" wx:key="key" class="sp-row">
-        <text class="sp-label">{{item.label}}</text>
-        <view class="stepper">
-          <view
-            class="step-btn {{item.canMinus ? '' : 'off'}}"
-            data-index="{{item.index}}"
-            data-delta="-1"
-            bindtap="changeSp"
-            hover-class="press-hover"
-          >−</view>
-          <text class="step-value num">{{item.value}}</text>
-          <view
-            class="step-btn {{item.canPlus ? '' : 'off'}}"
-            data-index="{{item.index}}"
-            data-delta="1"
-            bindtap="changeSp"
-            hover-class="press-hover"
-          >+</view>
-        </view>
-      </view>
-
-      <view class="sp-foot">
-        <text class="t-mini">剩余 {{spLeft}} 点 · 单项上限 32</text>
-        <text class="sp-reset" bindtap="resetSp" hover-class="press-hover">重置</text>
       </view>
     </view>
 
