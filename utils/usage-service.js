@@ -1,5 +1,6 @@
 const bundled = require('../data/usage.js')
 const config = require('../config.js')
+const versionUtil = require('./version.js')
 
 const CACHE_KEY = 'champion_usage_remote_v1'
 const listeners = []
@@ -12,10 +13,10 @@ let current = {
 }
 let hydrated = false
 let cachedAt = 0
+// 'bundled' 内置 | 'cache' 本地缓存 | 'remote' 远程刚拉到
+let sourceKind = 'bundled'
 
-function compareVersion(a, b) {
-  return String(a || '').localeCompare(String(b || ''))
-}
+const compareVersion = versionUtil.compareVersion
 
 function isValidPayload(data) {
   return !!(
@@ -52,6 +53,7 @@ function hydrate() {
         VERSION: cached.version
       }
       cachedAt = cached.fetchedAt || 0
+      sourceKind = 'cache'
     }
   } catch (e) {
     // Stored cache is best-effort; fall back to the bundled data.
@@ -71,6 +73,12 @@ function notify() {
 function getUsage() {
   hydrate()
   return current
+}
+
+/** 当前使用率数据的来源：bundled 内置 / cache 本地缓存 / remote 远程拉取。 */
+function getSource() {
+  hydrate()
+  return sourceKind
 }
 
 function subscribe(fn) {
@@ -115,6 +123,7 @@ function refresh(force) {
               VERSION: payload.version
             }
             cachedAt = Date.now()
+            sourceKind = 'remote'
             wx.setStorageSync(CACHE_KEY, {
               version: payload.version,
               data: payload.data,
@@ -136,6 +145,7 @@ function refresh(force) {
 
 module.exports = {
   getUsage,
+  getSource,
   subscribe,
   refresh
 }

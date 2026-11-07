@@ -25,6 +25,7 @@ const smogon = require('./lib/smogon')
 const opgg = require('./lib/opgg')
 const nameUtil = require('./lib/names')
 const emit = require('./lib/emit')
+const versionUtil = require('../utils/version.js')
 const pokedexData = require('../data/pokedex.js')
 const usageData = require('../data/usage.js')
 const itemsData = require('../data/items.js')
@@ -238,7 +239,8 @@ async function cmdUsage(args) {
     doubles: doublesMeta
   }
 
-  const version = args.version || `${today()}.1`
+  // 同一天重复跑要顺延序号，否则版本号不变会让远程热更新认为「不是新数据」
+  const version = args.version || versionUtil.nextVersion(usageData.VERSION)
   const next = { version, meta, rankings, usage }
 
   reportUsageDiff(usageData, next)
@@ -247,7 +249,7 @@ async function cmdUsage(args) {
     return
   }
   const size = emit.writeUsage(next)
-  log(`\n✓ 已写入 data/usage.js（${(size / 1024).toFixed(0)} KB）`)
+  log(`\n✓ 已写入 data/usage.js（${(size / 1024).toFixed(0)} KB，版本 ${usageData.VERSION} → ${version}）`)
   log('  下一步：node scripts/validate.js && node scripts/smoke.js，然后在开发者工具里预览')
 }
 
@@ -705,8 +707,10 @@ function reportPackageSize() {
 
 function cmdPublish(args) {
   const out = args.out || path.join('dist', 'usage.json')
+  // 自动升版：热更新靠版本号新旧判断，同一天重复发布会撞版本号导致用户拿不到新数据
+  const version = args.version || versionUtil.nextVersion(usageData.VERSION)
   const payload = {
-    version: args.version || `${today()}.1`,
+    version,
     data: {
       META: usageData.META,
       RANKINGS: usageData.RANKINGS,
@@ -717,13 +721,28 @@ function cmdPublish(args) {
   fs.mkdirSync(path.dirname(file), { recursive: true })
   fs.writeFileSync(file, JSON.stringify(payload), 'utf8')
   const size = fs.statSync(file).size
+  const cfg = readConfig()
 
-  log(`\n✓ 已生成 ${out}（${(size / 1024).toFixed(0)} KB，version=${payload.version}）`)
-  log('\n使用方式：')
-  log('  1. 把该文件上传到任意 HTTPS 静态托管（对象存储 / CDN / GitHub Pages 均可）')
-  log('  2. 在微信公众平台 → 开发设置 → 服务器域名 → request 合法域名，加入该域名')
-  log('  3. 把 config.js 里的 usageRemote.url 改成这个文件的地址，重新发布一次即可')
-  log('  4. 之后每次只更新这个 JSON，小程序启动就会自动拉到新数据（无需重新提审）')
+  log(`\n✓ 已生成 ${out}（${(size / 1024).toFixed(0)} KB）`)
+  log(`  内置版本 ${usageData.VERSION} → 发布版本 ${version}`)
+  log('\n上线步骤：')
+  log('  1. 把该文件上传到 HTTPS 静态托管（对象存储 / CDN / GitHub Pages 均可）')
+  log(`  2. 微信公众平台 → 开发设置 → 服务器域名 → request 合法域名，加入托管域名`)
+  log(`  3. config.js 的 usageRemote.url 填成该文件地址${cfg.url ? `（当前：${cfg.url}）` : '（当前为空，还没启用远程）'}`)
+  log('     改了 url 需要在开发者工具里重新编译并上传一次（这一次要发版，之后每月只换 JSON）')
+  log('  4. 以后更新：node scripts/update-data.js usage && node scripts/update-data.js publish --out dist/usage.json')
+  log('     然后用新的 usage.json 覆盖托管上的旧文件（版本号会自动 +1，用户下次启动就拿到）')
+  log('\n验证是否生效：小程序「我的 → 数据说明 → 使用率版本」，显示「远程」即为最新。')
+}
+
+function readConfig() {
+  try {
+    const file = path.join(ROOT, 'config.js')
+    delete require.cache[require.resolve(file)]
+    return require(file).usageRemote || {}
+  } catch (e) {
+    return {}
+  }
 }
 
 /* ------------------------------------------------------------------ reformat */

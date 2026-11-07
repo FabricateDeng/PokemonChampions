@@ -434,6 +434,47 @@ run('我的', () => {
   ok(p.data.favs.length === 2, '收藏 2 只，实际 ' + p.data.favs.length)
   ok(p.data.teamCount >= 2, '队伍数量 ' + p.data.teamCount)
   ok(p.data.infoRows.length >= 5, '数据说明行数')
+  const usageRow = p.data.infoRows.filter((r) => r.key === 'usageVer')[0]
+  ok(!!usageRow && /内置|本地缓存|远程/.test(usageRow.value), '使用率版本行带来源：' + (usageRow && usageRow.value))
+})
+
+/* ---------------------------------------------------------------- 版本号 */
+
+run('版本号比较（热更新靠它判断新旧）', () => {
+  const v = require(path.join(ROOT, 'utils', 'version.js'))
+  ok(v.compareVersion('2026-11-07.10', '2026-11-07.9') === 1, '.10 比 .9 新（不能按字符串比）')
+  ok(v.compareVersion('2026-11-07.9', '2026-11-07.10') === -1, '.9 比 .10 旧')
+  ok(v.compareVersion('2026-11-08', '2026-11-07.9') === 1, '跨天更新')
+  ok(v.compareVersion('2026-11-07.1', '2026-11-07.1') === 0, '同版本相等')
+  ok(v.nextVersion('2026-11-07.1', '2026-11-07') === '2026-11-07.2', '同日发布会顺延序号')
+  ok(v.nextVersion('2026-09-05.3', '2026-11-07') === '2026-11-07.1', '跨天发布会重置为 .1')
+
+  const service = require(path.join(ROOT, 'utils', 'usage-service.js'))
+  ok(service.getSource() === 'bundled', '未配置远程 url 时来源为内置，实际 ' + service.getSource())
+})
+
+run('远程热更新：本地缓存版本高于内置才生效', () => {
+  const servicePath = path.join(ROOT, 'utils', 'usage-service.js')
+  const bundled = require(path.join(ROOT, 'data', 'usage.js'))
+  const CACHE_KEY = 'champion_usage_remote_v1'
+  const payload = { META: bundled.META, RANKINGS: bundled.RANKINGS, USAGE: bundled.USAGE }
+
+  storage[CACHE_KEY] = { version: '2099-01-01.1', fetchedAt: Date.now(), data: payload }
+  delete require.cache[require.resolve(servicePath)]
+  const fresh = require(servicePath)
+  ok(fresh.getUsage().VERSION === '2099-01-01.1', '采用更高版本缓存，实际 ' + fresh.getUsage().VERSION)
+  ok(fresh.getSource() === 'cache', '来源标记为本地缓存')
+  ok(Object.keys(fresh.getUsage().USAGE).length === Object.keys(bundled.USAGE).length, '缓存数据完整')
+
+  storage[CACHE_KEY] = { version: '2000-01-01.1', fetchedAt: Date.now(), data: payload }
+  delete require.cache[require.resolve(servicePath)]
+  const stale = require(servicePath)
+  ok(stale.getUsage().VERSION === bundled.VERSION, '低版本缓存被忽略，仍是内置 ' + bundled.VERSION)
+  ok(stale.getSource() === 'bundled', '来源回落为内置')
+
+  delete storage[CACHE_KEY]
+  delete require.cache[require.resolve(servicePath)]
+  require(servicePath)
 })
 
 /* ---------------------------------------------------------------- 组件 */

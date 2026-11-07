@@ -61,6 +61,8 @@ Page({
     const meta = (usage && usage.META) || {}
     const singles = meta.singles || {}
     const doubles = meta.doubles || {}
+    // 使用率数据来源：内置 / 本地缓存 / 远程（用来确认热更新到底有没有生效）
+    const sourceLabel = { remote: '远程', cache: '本地缓存', bundled: '内置' }[usageService.getSource()] || '内置'
 
     // 当前规则以双打样本的赛制为准（单打格式同为 reg M-C）
     const regLabel = doubles.regulation || 'M-C'
@@ -106,6 +108,7 @@ Page({
           label: '使用率覆盖',
           value: `榜单收录 ${covered} 只，其余 ${Math.max(0, META.count - covered)} 只标注未上榜`
         },
+        { key: 'usageVer', label: '使用率版本', value: `${usage.VERSION || '—'} · ${sourceLabel}` },
         { key: 'sp', label: '能力值体系', value: 'Lv.50 / IV 31 / 0–32 SP（总和 66）' }
       ]
     })

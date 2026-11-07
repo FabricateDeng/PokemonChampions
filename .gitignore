@@ -8,3 +8,5 @@ docs/preview/frames/
 
 # 数据更新时下载的原始文件缓存
 .cache/
+
+dist/

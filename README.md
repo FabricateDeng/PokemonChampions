@@ -26,6 +26,7 @@ node scripts/update-data.js usage    # 拉 Smogon 最新月份使用率（--dry-
 node scripts/update-data.js pokedex  # 从 OP.GG 更新图鉴（--dry-run / --sprites / --items）
 node scripts/update-data.js check    # 数据自洽校验 + 代码包体积
 node scripts/update-data.js reformat # 按当前数据重排 data/*.js（不联网，修体积用）
+node scripts/update-data.js publish  # 生成远程热更新包 dist/usage.json（版本号自动 +1）
 node scripts/validate.js             # 静态校验：JSON/JS/WXML/WXSS/组件/路由/资源/色值
 node scripts/smoke.js                # 运行时冒烟测试：真跑每个页面的 onLoad 与主要交互
 node scripts/report-size.js          # 代码包体积：源码包 / 压缩后 / 微信 2MB 限制自查
