@@ -13,7 +13,7 @@
     },
     "useCompilerPlugins": false,
     "compileWorklet": false,
-    "uploadWithSourceMap": true,
+    "uploadWithSourceMap": false,
     "packNpmManually": false,
     "minifyWXSS": true,
     "minifyWXML": true,
@@ -34,8 +34,28 @@
         "value": "scripts"
       },
       {
+        "type": "folder",
+        "value": "dist"
+      },
+      {
+        "type": "folder",
+        "value": "node_modules"
+      },
+      {
+        "type": "folder",
+        "value": "miniprogram_npm"
+      },
+      {
+        "type": "folder",
+        "value": ".cache"
+      },
+      {
         "type": "suffix",
         "value": ".md"
+      },
+      {
+        "type": "suffix",
+        "value": ".py"
       }
     ],
     "include": []

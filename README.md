@@ -24,15 +24,19 @@
 node scripts/update-data.js status   # 数据版本 / 新鲜度体检
 node scripts/update-data.js usage    # 拉 Smogon 最新月份使用率（--dry-run 先看差异）
 node scripts/update-data.js pokedex  # 从 OP.GG 更新图鉴（--dry-run / --sprites / --items）
-node scripts/update-data.js check    # 数据自洽校验
+node scripts/update-data.js check    # 数据自洽校验 + 代码包体积
+node scripts/update-data.js reformat # 按当前数据重排 data/*.js（不联网，修体积用）
 node scripts/validate.js             # 静态校验：JSON/JS/WXML/WXSS/组件/路由/资源/色值
 node scripts/smoke.js                # 运行时冒烟测试：真跑每个页面的 onLoad 与主要交互
+node scripts/report-size.js          # 代码包体积：源码包 / 压缩后 / 微信 2MB 限制自查
 node scripts/preview.js              # 生成 docs/preview/*.png（需要 Chrome）
 node scripts/preview.js --zoom 图鉴   # 单帧 2x 放大
 python scripts/make_tabbar_icons.py  # 重新生成 tabBar 图标
 ```
 
-`scripts/`、`docs/`、`*.md` 已在 `project.config.json` 的 `packOptions.ignore` 中排除，不会打进小程序包。
+`scripts/`、`docs/`、`*.md`、`*.py` 已在 `project.config.json` 的 `packOptions.ignore` 中排除，不会打进小程序包。
+
+> **别把 `data/*.js` 改成多行对象字面量**：开发者工具编译会用 Babel 重排大对象，`data/pokedex.js` 会从 497 KB 涨到 2837 KB，整包超过「源码包 2MB」上限导致上传失败。详见 [数据更新指南 §3.5](docs/数据更新指南.md)。
 
 ## 结构
 

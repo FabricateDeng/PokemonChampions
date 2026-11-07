@@ -11,9 +11,10 @@
  *   node scripts/update-data.js pokedex --dry-run      只看差异
  *   node scripts/update-data.js pokedex --names        同时接受官方中文名（默认保留现有译名）
  *   node scripts/update-data.js pokedex --sprites      下载缺失的精灵图
- *   node scripts/update-data.js check                  校验数据自洽
+ *   node scripts/update-data.js check                  校验数据自洽 + 代码包体积
  *   node scripts/update-data.js publish --out dist/usage.json
  *                                                      生成远程热更新包
+ *   node scripts/update-data.js reformat               按当前数据重排 data/*.js（不联网）
  *   node scripts/update-data.js selftest               校验写出格式与现有文件一致
  */
 const fs = require('fs')
@@ -669,6 +670,35 @@ function cmdCheck() {
     return
   }
   log(`\n✓ 数据自检通过：${p.POKEMON.length} 只宝可梦 · ${Object.keys(p.MOVES).length} 招式 · ${items.length} 道具 · 使用率覆盖 ${Object.keys(u.USAGE).length} 只`)
+  reportPackageSize()
+}
+
+/** 数据变了就可能撑大代码包，顺手报一下体积（上传前必看）。 */
+function reportPackageSize() {
+  try {
+    const size = require('./report-size.js')
+    const report = size.buildReport()
+    const kb = (n) => Math.round(n / 1024) + ' KB'
+    log(`\n=== 代码包 ===`)
+    log(`  源代码 ${kb(report.stats.code)} · 图片 ${kb(report.stats.image)} · 合计 ${kb(report.stats.total)} · 压缩后 ≈ ${kb(report.stats.zipped)}`)
+    if (report.effectiveSource === null) {
+      log('  ? 编译后体积需在开发者工具里编译后确认（node scripts/report-size.js）')
+      return
+    }
+    const size2 = report.effectiveSource
+    const ok = size2 <= size.SOURCE_LIMIT
+    const mapNote = report.compiled.mapTotal
+      ? `（另有 sourcemap ${kb(report.compiled.mapTotal)}，${report.sourceMapOn ? '会计入体积' : '不上传'}）`
+      : ''
+    log(`  ${ok ? '✓' : '✗'} 编译后源码包 ${kb(size2)}（上限 2MB）${mapNote}${report.compiled.stale ? ' — 缓存偏旧，请重新编译后确认' : ''}`)
+    if (!ok) {
+      log('  · 若 sourcemap 占比大：project.config.json 里 uploadWithSourceMap 设为 false')
+      log('  · 若代码本身大：确认 data/*.js 是单行 JSON 字符串写法 → node scripts/update-data.js reformat')
+      process.exitCode = 1
+    }
+  } catch (e) {
+    log('  ! 体积统计失败：' + (e && e.message ? e.message : e))
+  }
 }
 
 /* ------------------------------------------------------------------ publish */
@@ -694,6 +724,23 @@ function cmdPublish(args) {
   log('  2. 在微信公众平台 → 开发设置 → 服务器域名 → request 合法域名，加入该域名')
   log('  3. 把 config.js 里的 usageRemote.url 改成这个文件的地址，重新发布一次即可')
   log('  4. 之后每次只更新这个 JSON，小程序启动就会自动拉到新数据（无需重新提审）')
+}
+
+/* ------------------------------------------------------------------ reformat */
+
+function cmdReformat() {
+  const before = {
+    'data/pokedex.js': fs.statSync(path.join(ROOT, 'data/pokedex.js')).size,
+    'data/usage.js': fs.statSync(path.join(ROOT, 'data/usage.js')).size,
+    'data/items.js': fs.statSync(path.join(ROOT, 'data/items.js')).size
+  }
+  const after = emit.rewriteAll()
+  Object.keys(after).forEach((rel) => {
+    const delta = after[rel] - before[rel]
+    log(`✓ 已重排 ${rel}  ${(before[rel] / 1024).toFixed(0)} KB → ${(after[rel] / 1024).toFixed(0)} KB`)
+    if (delta < -1024) log(`   （少 ${Math.round(-delta / 1024)} KB）`)
+  })
+  log('\n数据内容未变，只是换成「单行 JSON 字符串 + JSON.parse」写法，避免编译时被 Babel 重排撑大。')
 }
 
 /* ------------------------------------------------------------------ selftest */
@@ -760,9 +807,21 @@ function cmdSelftest() {
 function semanticEqual(textA, textB) {
   const parse = (text) => {
     const out = {}
-    const re = /^const ([A-Z_]+) = ([^]*?);\r?$/gm
+    const src = String(text).replace(/\r\n/g, '\n')
+    // 新格式：单行 JSON 载荷
+    const payload = /const [A-Z_]+ = JSON\.parse\('((?:[^'\\]|\\.)*)'\)/.exec(src)
+    if (payload) {
+      try {
+        const text2 = payload[1].replace(/\\(['\\])/g, '$1')
+        return Object.assign(out, JSON.parse(text2))
+      } catch (e) {
+        return out
+      }
+    }
+    // 旧格式：每个常量一个对象字面量
+    const re = /^const ([A-Z_]+) = ([^]*?);$/gm
     let m
-    while ((m = re.exec(String(text).replace(/\r\n/g, '\n')))) {
+    while ((m = re.exec(src))) {
       try {
         out[m[1]] = JSON.parse(m[2])
       } catch (e) {
@@ -796,10 +855,11 @@ async function main() {
     else if (cmd === 'pokedex') await cmdPokedex(args)
     else if (cmd === 'check') cmdCheck(args)
     else if (cmd === 'publish') cmdPublish(args)
+    else if (cmd === 'reformat') cmdReformat(args)
     else if (cmd === 'selftest') cmdSelftest(args)
     else {
       log('未知命令：' + cmd)
-      log('可用：status | usage | pokedex | check | publish | selftest')
+      log('可用：status | usage | pokedex | check | publish | reformat | selftest')
       process.exitCode = 1
     }
   } catch (e) {
