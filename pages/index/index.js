@@ -1,3 +1,4 @@
+const { META } = require('../../data/pokedex.js')
 const mon = require('../../utils/mon.js')
 const ui = require('../../utils/ui.js')
 const favs = require('../../utils/favs.js')
@@ -27,6 +28,7 @@ const PAGE_MOVE = 40
 Page({
   data: {
     navTotalHeight: 64,
+    dataUpdated: META.updated,
     modes: MODES,
     mode: 'mon',
 

@@ -12,6 +12,11 @@ const ROOT = path.resolve(__dirname, '..')
 const storage = {}
 let nav = []
 
+// 数据量随更新变化，断言里不要写死
+const DATASET = require(path.join(ROOT, 'data', 'pokedex.js')).META
+const MON_TOTAL = DATASET.count
+const MOVE_TOTAL = DATASET.moveCount
+
 const wx = {
   getWindowInfo: () => ({ statusBarHeight: 44, windowWidth: 375, windowHeight: 812, screenHeight: 812, safeArea: { bottom: 812 } }),
   getSystemInfoSync: () => ({ statusBarHeight: 44, windowWidth: 375, windowHeight: 812 }),
@@ -154,7 +159,7 @@ nav = []
 
 run('图鉴：首屏与筛选', () => {
   const p = instantiate('pages/index/index')
-  ok(p.data.monCount === 348, '默认 348 只，实际 ' + p.data.monCount)
+  ok(p.data.monCount === MON_TOTAL, '默认 ' + MON_TOTAL + ' 只，实际 ' + p.data.monCount)
   ok(p.data.monList.length === 30, '首屏 30 条，实际 ' + p.data.monList.length)
   ok(p.data.typeList.length === 19, '属性 chip 19 个')
 
@@ -168,7 +173,7 @@ run('图鉴：首屏与筛选', () => {
   ok(p.data.monCount >= 1 && p.data.monCount <= 4, '搜索「妙蛙」命中 ' + p.data.monCount)
 
   p.clearFilters()
-  ok(p.data.monCount === 348, '清除筛选回到 348，实际 ' + p.data.monCount)
+  ok(p.data.monCount === MON_TOTAL, '清除筛选回到 ' + MON_TOTAL + '，实际 ' + p.data.monCount)
 
   p.onSort(event({ index: 1 }))
   ok(p.data.monList[0].total >= p.data.monList[1].total, '按种族值降序')
@@ -178,11 +183,11 @@ run('图鉴：首屏与筛选', () => {
   p.onOnlyFav()
 
   p.onMode(event({}, { key: 'move' }))
-  ok(p.data.moveCount === 510, '招式视图 510 个，实际 ' + p.data.moveCount)
+  ok(p.data.moveCount === MOVE_TOTAL, '招式视图 ' + MOVE_TOTAL + ' 个，实际 ' + p.data.moveCount)
   p.onMoveCat(event({ index: 1 }))
   ok(p.data.moveList.every((m) => m.cat === 'physical'), '物理分类筛选')
   p.onMode(event({}, { key: 'mon' }))
-  ok(p.data.monCount === 348, '切回宝可梦视图')
+  ok(p.data.monCount === MON_TOTAL, '切回宝可梦视图')
 
   p.toggleFav(event({ key: 'dragapult' }))
   const favs = require(path.join(ROOT, 'utils', 'favs.js')).list()
@@ -242,7 +247,7 @@ run('详情：不存在的 key 走空态', () => {
 run('榜单：单打/双打', () => {
   const p = instantiate('pages/rankings/rankings')
   ok(p.data.count === 50, 'TOP50，实际 ' + p.data.count)
-  ok(p.data.totalCount === 348, '全部精灵 348 只，实际 ' + p.data.totalCount)
+  ok(p.data.totalCount === MON_TOTAL, '全部精灵 ' + MON_TOTAL + ' 只，实际 ' + p.data.totalCount)
   ok(p.data.top.length === 3, '前三名')
   ok(p.data.rows.length === 47, '其余 47 行')
   p.onFormat(event({}, { key: 'doubles' }))
@@ -252,7 +257,7 @@ run('榜单：单打/双打', () => {
   p.onScope(event({ key: 'all' }))
   ok(p.data.scope === 'all', '切到全部精灵')
   ok(p.data.top.length === 0, '全部视图不显示 TOP3')
-  ok(p.data.count === 348, '全部 348 只，实际 ' + p.data.count)
+  ok(p.data.count === MON_TOTAL, '全部 ' + MON_TOTAL + ' 只，实际 ' + p.data.count)
   ok(p.data.rows.length === 50, '首屏 50 行，实际 ' + p.data.rows.length)
   ok(p.data.hasMore === true, '还有更多')
   p.onReachBottom()
@@ -302,13 +307,13 @@ run('队伍编辑', () => {
 
 run('选择宝可梦', () => {
   const p = instantiate('pages/picker/picker', { teamId: 't1', slot: 3 })
-  ok(p.data.count === 348, '348 只可选')
+  ok(p.data.count === MON_TOTAL, MON_TOTAL + ' 只可选')
   ok(p.data.list.length === 40, '首屏渲染 40 条，实际 ' + p.data.list.length)
   p.setData({ query: '多龙' })
   p.apply(true)
   ok(p.data.list.some((m) => m.inTeam), '标记已在队伍')
   p.clearQuery()
-  ok(p.data.count === 348, '清空搜索回到 348')
+  ok(p.data.count === MON_TOTAL, '清空搜索回到 ' + MON_TOTAL)
   p.onType(event({ key: 'dragon' }))
   ok(p.data.count > 0 && p.data.count < 348, '龙属性子集 ' + p.data.count)
   nav = []

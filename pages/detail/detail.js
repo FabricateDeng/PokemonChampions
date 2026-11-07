@@ -321,7 +321,9 @@ Page({
       : `${doubles.source} · ${doubles.regulation} · ${doubles.from.slice(5).replace('-', '.')}–${doubles.to.slice(5).replace('-', '.')}`
     const blockSample = isSingles
       ? `样本 ${fmt.numberText(block.raw)}`
-      : `队伍 ${fmt.numberText(block.teams)} · 胜率 ${(block.winRate || 0).toFixed(1)}%`
+      : block.teams
+        ? `队伍 ${fmt.numberText(block.teams)} · 胜率 ${(block.winRate || 0).toFixed(1)}%`
+        : `样本 ${fmt.numberText(block.raw)}`
 
     this.setData({
       usageFormat: format,

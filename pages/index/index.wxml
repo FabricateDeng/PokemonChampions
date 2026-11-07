@@ -148,7 +148,7 @@
     </view>
   </block>
 
-  <view class="foot-note">数据更新 2026.11 · 非官方粉丝作品</view>
+  <view class="foot-note">数据更新 {{dataUpdated}} · 非官方粉丝作品</view>
 
   <sheet show="{{sheet}}" title="筛选与排序" bind:close="closeFilter">
     <view wx:if="{{filterCount}}" class="sheet-reset" bindtap="clearFilters" hover-class="press-hover">

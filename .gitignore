@@ -5,3 +5,6 @@ miniprogram_npm/
 # è®¾è®¡é¢„è§ˆçš„ä¸­é—´äº§ç‰©ï¼ˆå¯ç”¨ node scripts/preview.js é‡æ–°ç”Ÿæˆï¼Œåªæäº¤æœ€ç»ˆ PNGï¼‰
 docs/preview/*.html
 docs/preview/frames/
+
+# Êı¾İ¸üĞÂÊ±ÏÂÔØµÄÔ­Ê¼ÎÄ¼ş»º´æ
+.cache/

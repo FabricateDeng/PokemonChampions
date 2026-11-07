@@ -64,7 +64,9 @@ Page({
       const isSingles = format === 'singles'
       const extraText = (row) => (isSingles
         ? '样本 ' + fmt.numberText(row.raw)
-        : '胜率 ' + (row.winRate || 0).toFixed(1) + '%')
+        : row.winRate !== undefined
+          ? '胜率 ' + (row.winRate || 0).toFixed(1) + '%'
+          : '样本 ' + fmt.numberText(row.raw))
 
       const rows = []
       const seen = new Set()
