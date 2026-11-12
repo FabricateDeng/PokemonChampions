@@ -7,7 +7,12 @@ App({
   onLaunch() {
     // Cache system metrics once so every page/component can read them synchronously.
     this.globalData = system.getMetrics()
+    system.applyPageBackground()
     // Hybrid data: render bundled/cached usage data first, then refresh silently.
     usageService.refresh()
+  },
+
+  onShow() {
+    system.applyPageBackground()
   }
 })

@@ -8,5 +8,10 @@
   "navigationStyle": "custom",
   "backgroundColor": "#0a0e14",
   "backgroundTextStyle": "light",
-  "enablePullDownRefresh": false
+  "enablePullDownRefresh": false,
+  "backgroundColorTop": "#0a0e14",
+  "backgroundColorBottom": "#0a0e14",
+  "backgroundColorContent": "#0a0e14",
+  "navigationBarBackgroundColor": "#0a0e14",
+  "navigationBarTextStyle": "white"
 }

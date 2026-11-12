@@ -5,6 +5,7 @@ const monUtil = require('../../utils/mon.js')
 const routes = require('../../utils/routes.js')
 const store = require('../../utils/team-store.js')
 const usageService = require('../../utils/usage-service.js')
+const system = require('../../utils/system.js')
 
 const SOURCES = [
   {
@@ -47,6 +48,7 @@ Page({
   },
 
   onShow() {
+    system.applyPageBackground()
     this.load()
   },
 

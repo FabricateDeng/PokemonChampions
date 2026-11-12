@@ -1,5 +1,6 @@
 const store = require('../../utils/team-store.js')
 const routes = require('../../utils/routes.js')
+const system = require('../../utils/system.js')
 
 function decorate(team) {
   const members = team.members.filter(Boolean)
@@ -29,6 +30,7 @@ Page({
   },
 
   onShow() {
+    system.applyPageBackground()
     this.load()
   },
 

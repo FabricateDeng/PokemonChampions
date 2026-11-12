@@ -2,6 +2,7 @@ const monUtil = require('../../utils/mon.js')
 const fmt = require('../../utils/format.js')
 const routes = require('../../utils/routes.js')
 const usageService = require('../../utils/usage-service.js')
+const system = require('../../utils/system.js')
 
 const FORMATS = [
   { key: 'singles', label: '单打' },
@@ -37,6 +38,10 @@ Page({
     this.apply(usageService.getUsage(), 'singles', 'top')
     this.unsubscribe = usageService.subscribe((data) => this.apply(data, this.data.format, this.data.scope))
     usageService.refresh()
+  },
+
+  onShow() {
+    system.applyPageBackground()
   },
 
   onUnload() {

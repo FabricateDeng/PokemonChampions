@@ -53,4 +53,24 @@ function getMetrics() {
   return cached
 }
 
-module.exports = { getMetrics }
+const PAGE_BG = '#0a0e14'
+
+/**
+ * Paint the native window behind the page. Without this, tab switches can
+ * briefly reveal the WebView's default white surface before page WXSS paints.
+ */
+function applyPageBackground() {
+  try {
+    if (typeof wx !== 'undefined' && wx.setBackgroundColor) {
+      wx.setBackgroundColor({
+        backgroundColor: PAGE_BG,
+        backgroundColorTop: PAGE_BG,
+        backgroundColorBottom: PAGE_BG
+      })
+    }
+  } catch (e) {
+    // Non-fatal: the page CSS still paints the same dark color.
+  }
+}
+
+module.exports = { getMetrics, applyPageBackground, PAGE_BG }

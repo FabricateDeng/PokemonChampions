@@ -79,6 +79,7 @@ Page({
   },
 
   onShow() {
+    system.applyPageBackground()
     // Favourites can change on the detail page (R8.5 keeps filters, refreshes flags).
     const next = favs.asSet()
     let changed = next.size !== this.favSet.size

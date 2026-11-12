@@ -27,6 +27,7 @@ page {
   --r-tag: 8rpx;
 
   background: var(--bg);
+  background-color: #0a0e14;
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
   font-size: 28rpx;
@@ -66,7 +67,8 @@ input {
 
 .page {
   min-height: 100vh;
-  background: var(--bg);
+  background: var(--bg, #0a0e14);
+  background-color: #0a0e14;
 }
 
 .pad {
